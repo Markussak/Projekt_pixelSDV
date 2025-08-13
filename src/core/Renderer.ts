@@ -142,61 +142,67 @@ export class Renderer {
         });
     }
 
-    /**
-     * Generate 16-bit color palette with dark, atmospheric colors
+        /**
+     * Generate 16-bit color palette - Dark, muted, retro CRT style (Power of Ten/Alien 1979)
      */
     private generateColorPalette(): void {
         this.colorPalette = [
-            // Pure black and deep grays
+            // Deep blacks and dark grays (foundation)
             { r: 0, g: 0, b: 0 },           // Pure black
-            { r: 16, g: 16, b: 16 },        // Very dark gray
-            { r: 32, g: 32, b: 32 },        // Dark gray
-            { r: 48, g: 48, b: 48 },        // Medium dark gray
-            
-            // Deep space blues
-            { r: 8, g: 16, b: 32 },         // Deep space blue
-            { r: 16, g: 32, b: 64 },        // Space blue
-            { r: 24, g: 48, b: 96 },        // Medium space blue
-            { r: 32, g: 64, b: 128 },       // Bright space blue
-            
-            // Neon greens (classic terminal)
-            { r: 0, g: 64, b: 0 },          // Dark green
-            { r: 0, g: 128, b: 0 },         // Medium green
-            { r: 0, g: 192, b: 0 },         // Bright green
-            { r: 0, g: 255, b: 0 },         // Neon green
-            
-            // Warning oranges/yellows
-            { r: 64, g: 32, b: 0 },         // Dark orange
-            { r: 128, g: 64, b: 0 },        // Orange
-            { r: 192, g: 128, b: 0 },       // Bright orange
-            { r: 255, g: 255, b: 0 },       // Yellow
-            
-            // Danger reds
-            { r: 64, g: 0, b: 0 },          // Dark red
-            { r: 128, g: 0, b: 0 },         // Red
-            { r: 192, g: 0, b: 0 },         // Bright red
-            { r: 255, g: 0, b: 0 },         // Neon red
-            
-            // Purples for exotic elements
-            { r: 32, g: 0, b: 64 },         // Deep purple
-            { r: 64, g: 0, b: 128 },        // Purple
-            { r: 96, g: 0, b: 192 },        // Bright purple
-            { r: 128, g: 0, b: 255 },       // Neon purple
-            
-            // Cyans for energy/shields
-            { r: 0, g: 64, b: 64 },         // Dark cyan
-            { r: 0, g: 128, b: 128 },       // Cyan
-            { r: 0, g: 192, b: 192 },       // Bright cyan
-            { r: 0, g: 255, b: 255 },       // Neon cyan
-            
-            // Whites for highlights
-            { r: 128, g: 128, b: 128 },     // Medium gray
-            { r: 192, g: 192, b: 192 },     // Light gray
-            { r: 224, g: 224, b: 224 },     // Very light gray
-            { r: 255, g: 255, b: 255 }      // Pure white
+            { r: 8, g: 8, b: 8 },           // Very dark gray
+            { r: 16, g: 16, b: 16 },        // Dark gray
+            { r: 24, g: 24, b: 24 },        // Medium dark gray
+
+            // Muted dark greens (classic terminal/CRT phosphor)
+            { r: 4, g: 12, b: 4 },          // Very dark green
+            { r: 8, g: 24, b: 8 },          // Dark green
+            { r: 12, g: 36, b: 12 },        // Muted green
+            { r: 16, g: 48, b: 16 },        // Terminal green
+
+            // Worn amber/yellow (old CRT monitors)
+            { r: 24, g: 16, b: 4 },         // Dark amber
+            { r: 48, g: 32, b: 8 },         // Amber
+            { r: 72, g: 48, b: 12 },        // Worn amber
+            { r: 96, g: 64, b: 16 },        // Bright amber
+
+            // Faded orange warnings (damaged systems)
+            { r: 32, g: 16, b: 4 },         // Dark orange
+            { r: 64, g: 32, b: 8 },         // Faded orange
+            { r: 96, g: 48, b: 12 },        // Orange warning
+            { r: 128, g: 64, b: 16 },       // Bright orange
+
+            // Muted reds (critical alerts)
+            { r: 24, g: 8, b: 8 },          // Very dark red
+            { r: 48, g: 16, b: 16 },        // Dark red
+            { r: 72, g: 24, b: 24 },        // Muted red
+            { r: 96, g: 32, b: 32 },        // Alert red
+
+            // Deep blue-grays (space/depth)
+            { r: 8, g: 12, b: 20 },         // Deep blue-gray
+            { r: 16, g: 24, b: 40 },        // Blue-gray
+            { r: 24, g: 36, b: 60 },        // Space blue
+            { r: 32, g: 48, b: 80 },        // Bright blue-gray
+
+            // Faded cyan/teal (shields/energy)
+            { r: 8, g: 20, b: 16 },         // Dark teal
+            { r: 16, g: 40, b: 32 },        // Teal
+            { r: 24, g: 60, b: 48 },        // Faded cyan
+            { r: 32, g: 80, b: 64 },        // Bright teal
+
+            // Muted purples (exotic/alien)
+            { r: 16, g: 8, b: 24 },         // Dark purple
+            { r: 32, g: 16, b: 48 },        // Purple
+            { r: 48, g: 24, b: 72 },        // Muted purple
+            { r: 64, g: 32, b: 96 },        // Bright purple
+
+            // Light grays and worn whites
+            { r: 32, g: 32, b: 32 },        // Medium gray
+            { r: 48, g: 48, b: 48 },        // Light gray
+            { r: 64, g: 64, b: 64 },        // Bright gray
+            { r: 80, g: 80, b: 80 }         // Worn white
         ];
-        
-        this.logger.debug(`Generated 16-bit color palette with ${this.colorPalette.length} colors`);
+
+        this.logger.debug(`Generated dark retro 16-bit color palette with ${this.colorPalette.length} colors`);
     }
 
     /**

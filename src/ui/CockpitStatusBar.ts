@@ -487,16 +487,16 @@ export class CockpitStatusBar {
         const baseY = this.config.screenHeight - this.config.panelHeight - 10;
         const baseHeight = this.config.panelHeight + 20;
         
-        // Main base panel
-        renderer.fillRect(0, baseY, this.config.screenWidth, baseHeight, { r: 20, g: 25, b: 30 });
+        // Main base panel (very dark, worn metal)
+        renderer.fillRect(0, baseY, this.config.screenWidth, baseHeight, { r: 12, g: 14, b: 16 });
         
-        // Decorative edge
-        renderer.fillRect(0, baseY, this.config.screenWidth, 3, { r: 0, g: 64, b: 32 });
+        // Decorative edge (muted terminal glow)
+        renderer.fillRect(0, baseY, this.config.screenWidth, 3, { r: 8, g: 24, b: 8 });
         
-        // Panel separators
+        // Panel separators (dark gray lines)
         for (let i = 1; i < this.panels.length; i++) {
             const x = this.panels[i].x - this.config.panelSpacing / 2;
-            renderer.fillRect(x, baseY + 5, 1, baseHeight - 10, { r: 0, g: 128, b: 64 });
+            renderer.fillRect(x, baseY + 5, 1, baseHeight - 10, { r: 24, g: 24, b: 24 });
         }
     }
 
@@ -504,13 +504,13 @@ export class CockpitStatusBar {
      * Render individual panel
      */
     private renderPanel(renderer: Renderer, panel: PanelArea, panelIndex: number): void {
-        // Panel background with depth effect
-        renderer.fillRect(panel.x, panel.y, panel.width, panel.height, { r: 15, g: 20, b: 25 });
-        renderer.drawLine(panel.x, panel.y, panel.x + panel.width, panel.y, { r: 0, g: 255, b: 128 });
-        renderer.drawLine(panel.x, panel.y, panel.x, panel.y + panel.height, { r: 0, g: 255, b: 128 });
+        // Panel background with depth effect (dark, worn CRT style)
+        renderer.fillRect(panel.x, panel.y, panel.width, panel.height, { r: 8, g: 12, b: 8 });
+        renderer.drawLine(panel.x, panel.y, panel.x + panel.width, panel.y, { r: 16, g: 48, b: 16 });
+        renderer.drawLine(panel.x, panel.y, panel.x, panel.y + panel.height, { r: 16, g: 48, b: 16 });
         
-        // Panel title
-        renderer.renderText(panel.title, panel.x + 5, panel.y + 5, { r: 0, g: 255, b: 0 }, 8);
+        // Panel title (muted terminal green)
+        renderer.renderText(panel.title, panel.x + 5, panel.y + 5, { r: 12, g: 36, b: 12 }, 8);
         
         // Render panel content based on index
         switch (panelIndex) {
@@ -638,25 +638,25 @@ export class CockpitStatusBar {
         let fillColor: Color;
         
         if (isHeat) {
-            // Heat bar (red when high)
-            fillColor = value > 70 ? { r: 255, g: 0, b: 0 } : 
-                       value > 40 ? { r: 255, g: 255, b: 0 } : 
-                                   { r: 0, g: 255, b: 0 };
+            // Heat bar (muted red when high)
+            fillColor = value > 70 ? { r: 96, g: 32, b: 32 } : 
+                       value > 40 ? { r: 96, g: 64, b: 16 } : 
+                                   { r: 12, g: 36, b: 12 };
         } else {
-            // Standard bar (green to red)
-            fillColor = value > 60 ? { r: 0, g: 255, b: 0 } : 
-                       value > 30 ? { r: 255, g: 255, b: 0 } : 
-                                   { r: 255, g: 0, b: 0 };
+            // Standard bar (muted green to amber to red)
+            fillColor = value > 60 ? { r: 12, g: 36, b: 12 } : 
+                       value > 30 ? { r: 72, g: 48, b: 12 } : 
+                                   { r: 72, g: 24, b: 24 };
         }
         
         renderer.fillRect(x, y, fillWidth, height, fillColor);
         
-        // Border
-        renderer.drawLine(x, y, x + width, y, { r: 128, g: 128, b: 128 });
-        renderer.drawLine(x, y + height, x + width, y + height, { r: 128, g: 128, b: 128 });
+        // Border (dark gray)
+        renderer.drawLine(x, y, x + width, y, { r: 32, g: 32, b: 32 });
+        renderer.drawLine(x, y + height, x + width, y + height, { r: 32, g: 32, b: 32 });
         
-        // Value text
-        renderer.renderText(`${value.toFixed(0)}`, x + width + 2, y, { r: 255, g: 255, b: 255 }, 8);
+        // Value text (muted white)
+        renderer.renderText(`${value.toFixed(0)}`, x + width + 2, y, { r: 64, g: 64, b: 64 }, 8);
     }
 
     /**
@@ -664,14 +664,14 @@ export class CockpitStatusBar {
      */
     private renderWarningLight(renderer: Renderer, x: number, y: number, isActive: boolean): void {
         const color = isActive ? 
-            { r: 255, g: 0, b: 0 } : 
-            { r: 64, g: 0, b: 0 };
+            { r: 72, g: 24, b: 24 } : 
+            { r: 24, g: 8, b: 8 };
         
         renderer.fillRect(x, y, 8, 8, color);
         
-        // Flicker effect for active warnings
+        // Flicker effect for active warnings (muted glow)
         if (isActive && Math.sin(this.flickerTimer * 10) > 0.5) {
-            renderer.fillRect(x + 1, y + 1, 6, 6, { r: 255, g: 64, b: 64 });
+            renderer.fillRect(x + 1, y + 1, 6, 6, { r: 96, g: 32, b: 32 });
         }
     }
 
@@ -687,8 +687,8 @@ export class CockpitStatusBar {
         state: boolean, 
         label: string
     ): void {
-        const bgColor = state ? { r: 0, g: 64, b: 0 } : { r: 64, g: 0, b: 0 };
-        const textColor = state ? { r: 0, g: 255, b: 0 } : { r: 128, g: 128, b: 128 };
+        const bgColor = state ? { r: 8, g: 24, b: 8 } : { r: 24, g: 8, b: 8 };
+        const textColor = state ? { r: 16, g: 48, b: 16 } : { r: 32, g: 32, b: 32 };
         
         renderer.fillRect(x, y, width, height, bgColor);
         renderer.renderText(label, x + 2, y + 4, textColor, 8);
@@ -703,19 +703,19 @@ export class CockpitStatusBar {
         value: number, 
         label: string
     ): void {
-        // Background
-        renderer.fillRect(element.x, element.y, element.width, element.height, { r: 20, g: 20, b: 20 });
+        // Background (dark worn metal)
+        renderer.fillRect(element.x, element.y, element.width, element.height, { r: 8, g: 8, b: 8 });
         
-        // Slider position
+        // Slider position (muted teal)
         const sliderPos = (value / 100) * element.width;
-        renderer.fillRect(element.x, element.y, sliderPos, element.height, { r: 0, g: 128, b: 255 });
+        renderer.fillRect(element.x, element.y, sliderPos, element.height, { r: 16, g: 40, b: 32 });
         
-        // Slider handle
-        renderer.fillRect(element.x + sliderPos - 2, element.y - 2, 4, element.height + 4, { r: 255, g: 255, b: 255 });
+        // Slider handle (worn white)
+        renderer.fillRect(element.x + sliderPos - 2, element.y - 2, 4, element.height + 4, { r: 64, g: 64, b: 64 });
         
-        // Label and value
-        renderer.renderText(label, element.x, element.y - 12, { r: 255, g: 255, b: 255 }, 8);
-        renderer.renderText(`${value.toFixed(0)}%`, element.x + element.width - 25, element.y - 12, { r: 255, g: 255, b: 255 }, 8);
+        // Label and value (muted text)
+        renderer.renderText(label, element.x, element.y - 12, { r: 48, g: 48, b: 48 }, 8);
+        renderer.renderText(`${value.toFixed(0)}%`, element.x + element.width - 25, element.y - 12, { r: 48, g: 48, b: 48 }, 8);
     }
 
     /**

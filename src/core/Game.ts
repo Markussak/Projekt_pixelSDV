@@ -14,6 +14,7 @@ import { PlayerShip } from '@entities/PlayerShip';
 import { GalaxyManager } from '@procedural/GalaxyManager';
 import { CockpitStatusBar } from '@ui/CockpitStatusBar';
 import { ShipSection, SystemType } from '@entities/ShipSystems';
+import { CelestialManager } from '@managers/CelestialManager';
 
 export interface GameConfig {
     targetFPS: number;
@@ -43,6 +44,9 @@ export class Game {
     
     // UI systems
     private cockpitStatusBar: CockpitStatusBar | null = null;
+    
+    // Celestial systems
+    private celestialManager: CelestialManager | null = null;
     
     // Game loop
     private isRunning = false;
@@ -202,6 +206,34 @@ export class Game {
                 }
             });
             
+            // Initialize celestial manager
+            this.celestialManager = new CelestialManager({
+                renderDistance: 2000,
+                interactionDistance: 150,
+                showOrbitLines: true,
+                enableInteractions: true
+            }, {
+                onEnterOrbit: (bodyId) => {
+                    this.logger.info(`🛰️ Entering orbit around ${bodyId}`);
+                    // TODO: Handle orbit mechanics
+                },
+                onLand: (bodyId) => {
+                    this.logger.info(`🚁 Landing on ${bodyId}`);
+                    // TODO: Handle landing mechanics
+                },
+                onContinueFlight: () => {
+                    this.logger.info('🚀 Continuing flight');
+                },
+                onStartMining: (bodyId) => {
+                    this.logger.info(`⛏️ Mining on ${bodyId}`);
+                    // TODO: Add resources to inventory
+                },
+                onPerformScan: (bodyId) => {
+                    this.logger.info(`🔍 Scanned ${bodyId}`);
+                    // TODO: Add scan data to codex
+                }
+            });
+            
             // Setup demo content
             this.setupDemoContent();
             
@@ -327,6 +359,16 @@ export class Game {
                 this.logger.info(`🧪 Engines ${!currentStatus.enginesOnline ? 'enabled' : 'disabled'}`);
             }
             
+            // Demo celestial interactions (press 'P' to perform action on nearby body)
+            if (this.input.isKeyPressed('KeyP') && this.celestialManager) {
+                const nearbyBodies = this.celestialManager.getNearbyBodies();
+                if (nearbyBodies.length > 0) {
+                    const body = nearbyBodies[0];
+                    this.celestialManager.performAction(body.id, 'scan', this.playerShip.getPosition());
+                    this.logger.info(`🔍 Demo scan of ${body.name}`);
+                }
+            }
+            
             // Handle pause input
             if (this.input.isPausePressed()) {
                 if (this.stateManager.canPause()) {
@@ -347,6 +389,11 @@ export class Game {
                 this.cockpitStatusBar.updateDamageReports(this.playerShip.getShipSystems().getDamageReports());
             }
         }
+        
+        // Update celestial bodies
+        if (this.celestialManager && this.playerShip) {
+            this.celestialManager.update(deltaTime, this.input, this.playerShip.getPosition());
+        }
     }
 
     /**
@@ -363,6 +410,11 @@ export class Game {
         if (this.playerShip && this.stateManager.isGameActive()) {
             // Render thrust particles
             this.playerShip.renderThrustParticles(this.renderer);
+        }
+        
+        // Render celestial bodies
+        if (this.celestialManager && this.playerShip && this.stateManager.isGameActive()) {
+            this.celestialManager.render(this.renderer, this.playerShip.getPosition());
         }
         
         // Render cockpit status bar
@@ -543,29 +595,45 @@ export class Game {
                 }
             }
             
+                        // Load celestial system
+            if (this.galaxyManager && this.celestialManager) {
+                const currentSystem = this.galaxyManager.getCurrentSystem();
+                if (currentSystem) {
+                    this.celestialManager.loadSystem({
+                        systemData: currentSystem,
+                        cameraPosition: { x: 512, y: 384 }
+                    });
+                    
+                    // Discover all bodies for demo
+                    this.celestialManager.discoverAllBodies();
+                    
+                    this.logger.info(`🌌 Loaded celestial system: ${currentSystem.name}`);
+                }
+            }
+
             // Fallback demo planets if no galaxy system
             if (demoPlanets.length === 0) {
                 const planet1 = this.physics.createPlanet('demo_planet_1', { x: 300, y: 200 }, 1000000, 50);
                 const planet2 = this.physics.createPlanet('demo_planet_2', { x: 700, y: 500 }, 800000, 40);
-                
+
                 this.physics.addObject(planet1);
                 this.physics.addObject(planet2);
-                
+
                 this.physics.addGravityWell('demo_planet_1', {
                     position: planet1.position,
                     mass: planet1.mass,
                     radius: 200
                 });
-                
+
                 this.physics.addGravityWell('demo_planet_2', {
                     position: planet2.position,
                     mass: planet2.mass,
                     radius: 180
                 });
-                
+
                 demoPlanets.push(planet1, planet2);
             }
-            
+
             // Pass demo entities to state manager for rendering
             this.stateManager.setDemoShip(this.playerShip.getPhysicsObject());
             this.stateManager.setDemoPlanets(demoPlanets);
@@ -659,6 +727,10 @@ export class Game {
         
         if (this.galaxyManager) {
             await this.galaxyManager.cleanup();
+        }
+        
+        if (this.celestialManager) {
+            this.celestialManager.cleanup();
         }
         
         this.logger.info('✅ Game cleanup completed');
