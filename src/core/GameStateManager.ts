@@ -7,16 +7,24 @@ import { Logger } from '@utils/Logger';
 import { Renderer } from '@core/Renderer';
 import { PhysicsObject } from '@core/Physics';
 import { Vector2 } from '@core/Renderer';
+import { MainMenu, MenuEvents, NewGameSettings, GameSettings } from '@ui/MainMenu';
+import { InputManager } from '@core/InputManager';
+import { ProceduralAudio } from '@audio/ProceduralAudio';
+import { ParticleSystem } from '@effects/ParticleSystem';
 
 export enum GameState {
+    MainMenu = 'main_menu',
     Loading = 'loading',
-    Menu = 'menu',
     Playing = 'playing',
     Paused = 'paused',
     Inventory = 'inventory',
     Research = 'research',
     Navigation = 'navigation',
     Diplomacy = 'diplomacy',
+    Settings = 'settings',
+    Credits = 'credits',
+    NewGame = 'new_game',
+    LoadGame = 'load_game',
     Error = 'error'
 }
 
@@ -71,13 +79,17 @@ export interface StateTransition {
 }
 
 export class GameStateManager {
-    private currentState: GameState = GameState.Loading;
-    private previousState: GameState = GameState.Loading;
+    private currentState: GameState = GameState.MainMenu;
+    private previousState: GameState = GameState.MainMenu;
     private gameData: GameData;
     
     // State management
     private stateStack: GameState[] = [];
     private transitions: Map<string, StateTransition> = new Map();
+    private stateStartTime: number = Date.now();
+    
+    // Menu system
+    private mainMenu: MainMenu | null = null;
     
     // Demo entities for FÁZE 1
     private demoShip: PhysicsObject | null = null;
@@ -87,16 +99,45 @@ export class GameStateManager {
     private isInitialized = false;
     private saveInterval = 30000; // Auto-save every 30 seconds
 
-    constructor() {
+    constructor(audio?: ProceduralAudio, particles?: ParticleSystem) {
         this.logger = new Logger('GameStateManager');
         
         // Initialize default game data
         this.gameData = this.createDefaultGameData();
         
+        // Initialize menu system
+        this.initializeMenuSystem(audio, particles);
+        
         // Setup state transitions
         this.setupStateTransitions();
         
         this.logger.info('🎯 Game state manager created');
+    }
+
+    /**
+     * Initialize menu system
+     */
+    private initializeMenuSystem(audio?: ProceduralAudio, particles?: ParticleSystem): void {
+        const menuEvents: MenuEvents = {
+            onNewGame: async (settings: NewGameSettings) => {
+                await this.handleNewGame(settings);
+            },
+            onLoadGame: async (saveSlot: number) => {
+                await this.handleLoadGame(saveSlot);
+            },
+            onSettings: (settings: GameSettings) => {
+                this.handleSettingsChange(settings);
+            },
+            onExit: () => {
+                this.handleExit();
+            },
+            onGameStart: async () => {
+                await this.setState(GameState.Playing);
+            }
+        };
+        
+        this.mainMenu = new MainMenu(menuEvents, audio, particles);
+        this.logger.info('🎮 Menu system initialized');
     }
 
     /**
@@ -306,7 +347,7 @@ export class GameStateManager {
     /**
      * Update the game state manager
      */
-    update(deltaTime: number): void {
+    update(deltaTime: number, input?: InputManager): void {
         if (!this.isInitialized) return;
         
         // Update game time
@@ -317,12 +358,22 @@ export class GameStateManager {
         
         // State-specific updates
         switch (this.currentState) {
+            case GameState.MainMenu:
+            case GameState.NewGame:
+            case GameState.LoadGame:
+            case GameState.Settings:
+            case GameState.Credits:
+                if (this.mainMenu && input) {
+                    this.mainMenu.update(deltaTime, input);
+                }
+                break;
+                
             case GameState.Playing:
                 this.updatePlayingState(deltaTime);
                 break;
                 
-            case GameState.Menu:
-                this.updateMenuState(deltaTime);
+            case GameState.Loading:
+                this.updateLoadingState(deltaTime);
                 break;
         }
     }
@@ -344,10 +395,17 @@ export class GameStateManager {
     }
 
     /**
-     * Update menu state
+     * Update loading state
      */
-    private updateMenuState(deltaTime: number): void {
-        // Menu animations or background effects could go here
+    private updateLoadingState(deltaTime: number): void {
+        // Simulate loading time
+        const loadingTime = Date.now() - this.stateStartTime;
+        
+        if (loadingTime > 2000) { // 2 seconds loading time
+            this.setState(GameState.Playing).catch(error => {
+                this.logger.error('Failed to transition to playing state', error);
+            });
+        }
     }
 
     /**
@@ -360,12 +418,18 @@ export class GameStateManager {
         }
         
         switch (this.currentState) {
-            case GameState.Loading:
-                this.renderLoadingState(renderer);
+            case GameState.MainMenu:
+            case GameState.NewGame:
+            case GameState.LoadGame:
+            case GameState.Settings:
+            case GameState.Credits:
+                if (this.mainMenu) {
+                    this.mainMenu.render(renderer);
+                }
                 break;
                 
-            case GameState.Menu:
-                this.renderMenuState(renderer);
+            case GameState.Loading:
+                this.renderLoadingState(renderer);
                 break;
                 
             case GameState.Playing:
@@ -643,6 +707,91 @@ export class GameStateManager {
     }
 
     /**
+     * Handle menu events
+     */
+    private async handleNewGame(settings: NewGameSettings): Promise<void> {
+        this.logger.info('🆕 Starting new game', settings);
+        
+        // Apply new game settings
+        this.gameData = this.createDefaultGameData();
+        this.gameData.playerShip.id = `ship_${settings.playerName.toLowerCase()}`;
+        
+        // Apply difficulty settings
+        switch (settings.difficulty) {
+            case 'easy':
+                this.gameData.playerShip.health = 150;
+                this.gameData.playerShip.fuel = 200;
+                break;
+            case 'hard':
+                this.gameData.playerShip.health = 75;
+                this.gameData.playerShip.fuel = 100;
+                break;
+            case 'nightmare':
+                this.gameData.playerShip.health = 50;
+                this.gameData.playerShip.fuel = 75;
+                break;
+            default: // normal
+                this.gameData.playerShip.health = 100;
+                this.gameData.playerShip.fuel = 150;
+        }
+        
+        // Set galaxy settings
+        this.gameData.currentSystem.name = `Galaxy_${settings.galaxySeed}`;
+        
+        await this.setState(GameState.Loading);
+    }
+    
+    private async handleLoadGame(saveSlot: number): Promise<void> {
+        this.logger.info(`📁 Loading game from slot ${saveSlot}`);
+        
+        try {
+            const saveKey = `stellarOdyssey_save_${saveSlot}`;
+            const saveData = localStorage.getItem(saveKey);
+            
+            if (saveData) {
+                this.gameData = JSON.parse(saveData);
+                await this.setState(GameState.Loading);
+            } else {
+                this.logger.warn('Save slot is empty');
+            }
+        } catch (error) {
+            this.logger.error('Failed to load game', error);
+        }
+    }
+    
+    private handleSettingsChange(settings: GameSettings): void {
+        this.logger.info('⚙️ Applying settings', settings);
+        
+        // Update game data settings
+        this.gameData.settings = {
+            masterVolume: settings.masterVolume,
+            musicVolume: settings.musicVolume,
+            effectsVolume: settings.sfxVolume,
+            renderScale: settings.renderScale,
+            showFPS: settings.showFPS
+        };
+        
+        // Save settings
+        try {
+            localStorage.setItem('stellarOdyssey_settings', JSON.stringify(settings));
+        } catch (error) {
+            this.logger.error('Failed to save settings', error);
+        }
+    }
+    
+    private handleExit(): void {
+        this.logger.info('👋 Exiting game');
+        
+        // Save current game state
+        this.saveGameData();
+        
+        // Close game or minimize window
+        if ('close' in window) {
+            (window as any).close();
+        }
+    }
+
+    /**
      * Public getters
      */
     getCurrentState(): GameState {
@@ -686,6 +835,8 @@ export class GameStateManager {
     isGameActive(): boolean {
         return this.currentState === GameState.Playing;
     }
+    
+
 
     isInMenu(): boolean {
         return this.currentState === GameState.Menu;

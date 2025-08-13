@@ -27,6 +27,7 @@ import { DiplomacySystem } from '@diplomacy/DiplomacySystem';
 import { AlienAI, AlienSpecies } from '@ai/AlienAI';
 import { ProceduralAudio, SoundType } from '@audio/ProceduralAudio';
 import { PerformanceMonitor } from '@optimization/PerformanceMonitor';
+import { ParticleSystem } from '@effects/ParticleSystem';
 
 export interface GameConfig {
     targetFPS: number;
@@ -83,6 +84,7 @@ export class Game {
     // Polish systems
     private proceduralAudio: ProceduralAudio | null = null;
     private performanceMonitor: PerformanceMonitor | null = null;
+    private particleSystem: ParticleSystem | null = null;
     
     // Game loop
     private isRunning = false;
@@ -154,8 +156,8 @@ export class Game {
             this.audio = new AudioEngine(this.platform);
             this.logger.info('✅ Audio engine initialized');
             
-            // Initialize game state manager
-            this.stateManager = new GameStateManager();
+            // Initialize game state manager with audio and particles
+            this.stateManager = new GameStateManager(this.proceduralAudio, this.particleSystem);
             this.logger.info('✅ Game state manager initialized');
             
             this.logger.info('🎯 All core systems initialized successfully');
@@ -422,6 +424,14 @@ export class Game {
             // Initialize audio system
             await this.proceduralAudio.initialize();
             
+            // Initialize particle system
+            this.particleSystem = new ParticleSystem({
+                maxParticles: 1000,
+                qualityScale: 1.0,
+                enableTrails: true,
+                pixelPerfect: true
+            });
+            
             // Initialize performance monitoring
             this.performanceMonitor.initialize();
             
@@ -556,7 +566,7 @@ export class Game {
         this.input.update(deltaTime);
         
         // Update game state
-        this.stateManager.update(deltaTime);
+        this.stateManager.update(deltaTime, this.input);
         
         // Update physics simulation
         this.physics.update(deltaTime);
@@ -876,6 +886,7 @@ export class Game {
         
         // Update polish systems
         this.performanceMonitor?.update(deltaTime);
+        this.particleSystem?.update(deltaTime);
         
         // Update performance metrics for monitoring
         if (this.performanceMonitor) {
@@ -941,6 +952,11 @@ export class Game {
         // Render debug information if enabled
         if (this.config.enableDebug) {
             this.renderDebugInfo();
+        }
+        
+        // Render particles on top of everything
+        if (this.particleSystem) {
+            this.particleSystem.render(this.renderer);
         }
         
         // Finalize frame
@@ -1220,7 +1236,7 @@ export class Game {
     /**
      * Cleanup resources
      */
-    cleanup(): void {
+    async cleanup(): Promise<void> {
         this.logger.info('🧹 Cleaning up game resources...');
         
         this.stop();
@@ -1258,7 +1274,7 @@ export class Game {
     }
 
     // Getters for external access
-    isPaused(): boolean {
+    getIsPaused(): boolean {
         return this.isPaused;
     }
 

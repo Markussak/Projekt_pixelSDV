@@ -44,7 +44,7 @@ export enum ItemCategory {
     
     // Weapons
     Projectile = 'projectile',
-    Energy = 'energy_weapon',
+    EnergyWeapon = 'energy_weapon',
     Missile = 'missile',
     
     // Tools
