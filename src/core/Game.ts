@@ -19,6 +19,7 @@ import { SpaceBackground } from '@rendering/SpaceBackground';
 import { ItemDatabase } from '@items/ItemSystem';
 import { InventoryManager } from '@inventory/InventoryManager';
 import { CraftingSystem } from '@crafting/CraftingSystem';
+import { CombatManager } from '@combat/CombatManager';
 
 export interface GameConfig {
     targetFPS: number;
@@ -59,6 +60,9 @@ export class Game {
     private itemDatabase: ItemDatabase | null = null;
     private inventoryManager: InventoryManager | null = null;
     private craftingSystem: CraftingSystem | null = null;
+    
+    // Combat system
+    private combatManager: CombatManager | null = null;
     
     // Game loop
     private isRunning = false;
@@ -295,6 +299,26 @@ export class Game {
                 }
             );
             
+            // Initialize combat system
+            this.combatManager = new CombatManager(
+                this.itemDatabase,
+                this.inventoryManager,
+                {
+                    onEncounterStarted: (encounter) => {
+                        this.logger.info(`🚨 Combat encounter: ${encounter.name}`);
+                    },
+                    onEncounterCompleted: (encounter, success) => {
+                        this.logger.info(`${success ? '✅' : '❌'} Encounter ${encounter.name} ${success ? 'completed' : 'failed'}`);
+                    },
+                    onEnemyDestroyed: (enemyId, rewards) => {
+                        this.logger.info(`💰 Enemy destroyed: +${rewards.experience} XP, ${rewards.items.length} items`);
+                    },
+                    onPlayerDamaged: (damage, damageType) => {
+                        this.logger.warn(`💥 Player hit: ${damage} ${damageType} damage`);
+                    }
+                }
+            );
+            
             // Setup demo content
             this.setupDemoContent();
             
@@ -477,6 +501,37 @@ export class Game {
                 }
             }
             
+            // Demo combat controls
+            if (this.combatManager) {
+                // Fire primary weapon (left mouse or space)
+                if (this.input.isKeyPressed('Space')) {
+                    const fired = this.combatManager.firePlayerWeapon('player_laser_1');
+                    if (fired) {
+                        this.logger.debug('🔫 Fired laser cannon');
+                    }
+                }
+                
+                // Fire secondary weapon (right mouse or shift)
+                if (this.input.isKeyPressed('ShiftLeft')) {
+                    const fired = this.combatManager.firePlayerWeapon('player_cannon_1');
+                    if (fired) {
+                        this.logger.debug('🔫 Fired mass driver');
+                    }
+                }
+                
+                // Spawn random enemy (press 'E' for demo)
+                if (this.input.isKeyPressed('KeyE')) {
+                    this.combatManager.startRandomEncounter();
+                    this.logger.info('🛸 Spawned random encounter');
+                }
+                
+                // Clear all enemies (press 'Q' for demo)
+                if (this.input.isKeyPressed('KeyQ')) {
+                    this.combatManager.clearCombat();
+                    this.logger.info('🧹 Cleared all combat');
+                }
+            }
+            
             // Handle pause input
             if (this.input.isPausePressed()) {
                 if (this.stateManager.canPause()) {
@@ -522,6 +577,19 @@ export class Game {
         if (this.craftingSystem) {
             this.craftingSystem.update(deltaTime);
         }
+        
+        // Update combat system
+        if (this.combatManager && this.playerShip) {
+            const shipSystems = this.playerShip.getSystemStatus();
+            this.combatManager.updatePlayer(
+                this.playerShip.getPosition(),
+                this.playerShip.getVelocity(),
+                20, // Player ship size
+                shipSystems.hull,
+                100 // Max hull
+            );
+            this.combatManager.update(deltaTime);
+        }
     }
 
     /**
@@ -565,6 +633,11 @@ export class Game {
         
         if (this.craftingSystem && this.craftingSystem.isCraftingVisible()) {
             this.craftingSystem.render(this.renderer);
+        }
+        
+        // Render combat effects
+        if (this.combatManager) {
+            this.combatManager.render(this.renderer);
         }
         
         // Render debug information if enabled
