@@ -3,43 +3,50 @@
 
 ## ⚠️ POZNÁMKA PRO AI:
 Tento TODO list je určen pro AI asistenta, který bude vytvářet:
-- Kompletní zdrojový kód (GDScript files)
-- Všechny game assety (pixel art sprites, UI, audio)
-- Shader efekty a rendering systémy
-- Herní logiku a algoritmy
-- Dokumentaci a komentáře
+- Kompletní zdrojový kód (TypeScript + HTML5 Canvas)
+- Všechny game assety (procedural pixel art, UI, audio)
+- WebGL shader efekty a rendering systémy
+- Herní logiku a algoritmy s realistic space physics
+- Multi-platform deployment (PC .exe, mobile .apk, web)
+- Dokumentaci a TypeScript komentáře
 
 ## 🚀 FÁZE 1: PŘÍPRAVA A CORE SYSTÉMY (Týdny 1-4) - AI VYTVOŘÍ
 
 ### Technická infrastruktura - AI IMPLEMENTUJE
-- [ ] AI: Vytvořit Godot 4.x project file (project.godot)
-- [ ] AI: Nastavit project settings pro pixel perfect rendering
-- [ ] AI: Vytvořit kompletní folder strukturu (assets/, scripts/, scenes/, shaders/)
-- [ ] AI: Implementovat .gitignore pro Godot
+- [ ] AI: Vytvořit TypeScript projekt s Vite build systémem
+- [ ] AI: Nastavit package.json s všemi dependencies (Canvas, WebGL, Audio API)
+- [ ] AI: Vytvořit kompletní folder strukturu (src/, assets/, dist/, types/)
+- [ ] AI: Implementovat .gitignore pro Node.js/TypeScript projekt
 - [ ] AI: Vytvořit README s development notes a progress tracking
-- [ ] AI: Nastavit Git repository pro tracking změn
+- [ ] AI: Nastavit Git repository s proper TypeScript setup
 
 ### Rendering systém - AI NAPROGRAMUJE
-- [ ] AI: Naprogramovat pixel perfect camera controller (.gd script)
-- [ ] AI: Vytvořit dithering shader (.gdshader file)
-- [ ] AI: Implementovat depth layering system (GDScript)
-- [ ] AI: Vytvořit CRT shader (scanlines, chromatic aberration)
-- [ ] AI: Naprogramovat camera s smooth following a zoom
+- [ ] AI: Naprogramovat HTML5 Canvas rendering engine (TypeScript)
+- [ ] AI: Vytvořit WebGL dithering shadery
+- [ ] AI: Implementovat depth layering system s z-index
+- [ ] AI: Vytvořit CRT shader effects (WebGL)
+- [ ] AI: Naprogramovat camera systém s smooth following
 - [ ] AI: Vytvořit color palette manager pro 16-bit aesthetic
 
 ### Základní herní loop - AI VYTVOŘÍ KÓD
-- [ ] AI: Naprogramovat GameStateManager (Menu/Game/Pause states)
+- [ ] AI: Naprogramovat GameStateManager (TypeScript classes)
 - [ ] AI: Vytvořit SceneManager pro Star System/Interstellar Space
-- [ ] AI: Implementovat input handling system (GDScript)
-- [ ] AI: Naprogramovat basic player ship s movement physics
-- [ ] AI: Vytvořit basic ship rotation mechanics
+- [ ] AI: Implementovat input handling (keyboard, mouse, touch)
+- [ ] AI: Naprogramovat basic player ship s realistic physics
+- [ ] AI: Vytvořit ship rotation a movement mechanics
 - [ ] AI: Implementovat pause menu functionality
 
-### Asset Creation - AI GENERUJE
-- [ ] AI: Vytvořit základní ship sprite (16-bit pixel art)
-- [ ] AI: Generovat space background texture
-- [ ] AI: Vytvořit základní UI elementy (buttons, panels)
-- [ ] AI: Implementovat sprite loading system
+### Asset Creation - AI GENERUJE PROCEDURÁLNĚ
+- [ ] AI: Vytvořit procedural ship sprite generator (TypeScript)
+- [ ] AI: Implementovat procedural space background generator
+- [ ] AI: Vytvořit retro UI system s CRT styling
+- [ ] AI: Naprogramovat sprite caching a management systém
+
+### Multi-Platform Setup - AI PŘIPRAVÍ
+- [ ] AI: Setup Tauri config pro PC .exe build
+- [ ] AI: Setup Cordova config pro mobile .apk build
+- [ ] AI: Vytvořit web deployment pipeline
+- [ ] AI: Implementovat responsive design pro všechny platformy
 
 ## 🌌 FÁZE 2: PROCEDURÁLNÍ GENEROVÁNÍ (Týdny 5-8)
 

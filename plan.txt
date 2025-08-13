@@ -1,35 +1,38 @@
 # KOMPLEXNÍ PLÁN VÝVOJE - 2D 16-BIT SPACE OPEN-WORLD HRA
-# AI-DRIVEN DEVELOPMENT PLAN
+# AI-DRIVEN TYPESCRIPT/WEB DEVELOPMENT PLAN
 
 ## ⚠️ POZNÁMKA: 
 Tento plán je určen pro AI asistenta, který bude vytvářet VŠECHNY komponenty hry:
-- Kompletní zdrojový kód (GDScript)
-- Všechny game assety (sprites, UI, audio)
-- Shader efekty a rendering systémy
+- Kompletní zdrojový kód (TypeScript + HTML5 Canvas)
+- Všechny game assety (procedural pixel art, UI, audio)
+- WebGL shader efekty a rendering systémy
 - Herní logiku a algoritmy
 - Dokumentaci a komentáře
+- Multi-platform deployment (PC .exe, mobile .apk, web)
 
 ## FÁZE 1: PŘÍPRAVA A CORE SYSTÉMY (Týdny 1-4)
 
 ### 1.1 Technická infrastruktura - AI IMPLEMENTACE
-- **Vytvoření Godot 4.x projektu** s kompletním nastavením
-- **Generování folder struktury** pro assets, scripts, scenes
-- **Implementace pixel art pipeline** s perfect pixel settings
+- **Vytvoření TypeScript projektu** s Webpack/Vite build systémem
+- **Generování folder struktury** pro src/, assets/, dist/, types/
+- **Implementace HTML5 Canvas** s perfect pixel scaling
 - **Vytvoření color palette systému** pro 16-bit aesthetic
+- **Setup npm package.json** s všemi dependencies
 
 ### 1.2 Core rendering systém - AI VYTVOŘÍ
-- **Naprogramování pixelového rendering pipeline** s perfect pixel scaling
-- **Vytvoření dithering shader** pro plynulé barevné přechody
-- **Implementace depth layering systému** pro 3D efekt v 2D prostoru
-- **Naprogramování CRT shader effects:** scanlines, chromatic aberration, screen curvature
+- **Naprogramování Canvas rendering pipeline** s pixel perfect scaling
+- **Vytvoření WebGL shaderů** pro dithering a barevné přechody
+- **Implementace depth layering systému** s z-index management
+- **Naprogramování CRT shader effects:** scanlines, chromatic aberration
 - **Vytvoření camera systému** s smooth following a zoom
+- **Implementace sprite systému** s procedural pixel art
 
 ### 1.3 Základní herní loop - AI VYTVOŘÍ
 - **Naprogramování Game state manageru** (Menu, Game, Pause states)
 - **Implementace Scene managementu** (Star System, Interstellar Space)
-- **Vytvoření input handling systému**
-- **Naprogramování basic player ship** s pohybem a rotací
-- **Vytvoření základních sprite assetů** pro loď
+- **Vytvoření input handling** pro keyboard, mouse, touch
+- **Naprogramování basic player ship** s physics a movement
+- **Vytvoření procedural ship sprites** přímo v kódu
 
 ## FÁZE 2: PROCEDURÁLNÍ GENEROVÁNÍ (Týdny 5-8) - AI IMPLEMENTACE
 
@@ -275,17 +278,20 @@ Tento plán je určen pro AI asistenta, který bude vytvářet VŠECHNY komponen
 ## DEVELOPMENT TOOLS - AI VYUŽÍVÁ
 
 ### Tech Stack pro AI Development
-- **Game Engine:** Godot 4.x (AI bude vytvářet .gd skripty)
-- **Asset Creation:** AI generuje pixel art v kódu nebo jako obrázky
-- **Audio Generation:** AI vytváří audio systémy a procedurální zvuky
+- **Runtime:** TypeScript + HTML5 Canvas + WebGL
+- **Build System:** Vite/Webpack pro development a production builds
+- **Asset Creation:** AI generuje pixel art přímo v kódu (procedural)
+- **Audio Generation:** Web Audio API + procedurální audio syntéza
+- **Physics:** Custom physics engine nebo Matter.js integration
 - **Version Control:** Git - AI commituje progress
-- **Documentation:** AI vytváří komentáře a dokumentaci
+- **Documentation:** AI vytváří TypeScript dokumentaci a komentáře
 
 ### Custom Tools - AI NAPROGRAMUJE
-- **Galaxy generator** (integrated do hry) - AI vytvoří jako součást enginu
-- **Sprite animation system** - AI naprogramuje v GDScript
+- **Galaxy generator** (integrated) - AI vytvoří procedural algoritmy
+- **Sprite animation system** - AI naprogramuje v TypeScript
 - **Asset management systém** - AI implementuje resource loading
-- **Debug tools** - AI vytvoří in-game debugging interface
+- **Debug tools** - AI vytvoří web-based debugging interface
+- **Multi-platform builder** - AI setup pro Tauri/Electron/Cordova
 
 ## ESTIMATED TIMELINE: 44 týdnů (11 měsíců) - AI DEVELOPMENT
 

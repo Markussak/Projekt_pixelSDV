@@ -38,12 +38,15 @@ Ambiciózní 2D open-world vesmírná hra v 16-bitovém pixelovém stylu s retro
 
 ## 🛠️ Technický stack
 
-- **Game Engine:** Godot 4.x
+- **Runtime:** TypeScript + HTML5 Canvas + WebGL
 - **Development:** AI-driven development (AI vytváří veškerý kód a assety)
-- **Programming:** GDScript 
-- **Asset Creation:** AI-generated pixel art, UI, audio
+- **Build System:** Vite/Webpack pro instant preview a multi-platform build
+- **Asset Creation:** AI-generated procedural pixel art, UI, audio
+- **Physics:** Custom physics engine + Matter.js pro realistic space simulation
+- **Audio:** Web Audio API s procedurální audio syntézou
+- **Deployment:** Tauri (PC .exe), Cordova (mobile .apk), Web (direct)
 - **Version Control:** Git s tracking AI progress
-- **Documentation:** AI-generated code comments a progress reports
+- **Documentation:** AI-generated TypeScript documentation
 
 ## 📚 Dokumentace
 
@@ -99,14 +102,15 @@ cd space-explorer-16bit
 ## 🤖 AI Development Process
 
 **AI asistent bude vytvářet:**
-- ✅ Kompletní GDScript kód pro všechny herní systémy
-- ✅ 16-bit pixel art sprites a animace
-- ✅ UI elementy a retro CRT interface
-- ✅ Shader efekty (dithering, CRT)
-- ✅ Audio systémy a zvukové efekty
+- ✅ Kompletní TypeScript kód pro všechny herní systémy
+- ✅ Procedural 16-bit pixel art sprites a animace (generované v kódu)
+- ✅ Retro CRT UI interface s WebGL efekty
+- ✅ WebGL shader efekty (dithering, CRT, bloom)
+- ✅ Web Audio API systémy a procedurální zvuky
 - ✅ Procedurální generátory galaxie a systémů
 - ✅ Pokročilé AI systémy pro NPCs
-- ✅ Kompletní dokumentaci a komentáře
+- ✅ Multi-platform deployment (PC/Mobile/Web)
+- ✅ Kompletní TypeScript dokumentaci a komentáře
 
 **Next Step:** Schválení uživatelem pro zahájení FÁZE 1 development
 
