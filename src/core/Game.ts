@@ -12,6 +12,8 @@ import { Platform, PlatformDetector } from '@utils/Platform';
 import { Logger } from '@utils/Logger';
 import { PlayerShip } from '@entities/PlayerShip';
 import { GalaxyManager } from '@procedural/GalaxyManager';
+import { CockpitStatusBar } from '@ui/CockpitStatusBar';
+import { ShipSection, SystemType } from '@entities/ShipSystems';
 
 export interface GameConfig {
     targetFPS: number;
@@ -38,6 +40,9 @@ export class Game {
     
     // Galaxy system
     private galaxyManager: GalaxyManager | null = null;
+    
+    // UI systems
+    private cockpitStatusBar: CockpitStatusBar | null = null;
     
     // Game loop
     private isRunning = false;
@@ -154,6 +159,49 @@ export class Game {
                 await this.galaxyManager.initialize();
             });
             
+            // Initialize cockpit UI
+            this.cockpitStatusBar = new CockpitStatusBar({
+                screenWidth: this.canvas.width,
+                screenHeight: this.canvas.height
+            }, {
+                onPowerAllocationChange: (allocation) => {
+                    if (this.playerShip) {
+                        this.playerShip.setPowerAllocation(allocation);
+                        this.logger.debug('Power allocation changed', allocation);
+                    }
+                },
+                onSystemToggle: (system, state) => {
+                    if (this.playerShip) {
+                        this.playerShip.toggleSystem(system as any, state);
+                        this.logger.debug(`System ${system} ${state ? 'enabled' : 'disabled'}`);
+                    }
+                },
+                onInventoryOpen: () => {
+                    this.logger.info('📦 Inventory requested');
+                    // TODO: Open inventory screen
+                },
+                onCodexOpen: () => {
+                    this.logger.info('📚 Codex requested');
+                    // TODO: Open codex screen
+                },
+                onResearchOpen: () => {
+                    this.logger.info('🔬 Research requested');
+                    // TODO: Open research screen
+                },
+                onCrewOpen: () => {
+                    this.logger.info('👥 Crew management requested');
+                    // TODO: Open crew screen
+                },
+                onGalaxyMapOpen: () => {
+                    this.logger.info('🌌 Galaxy map requested');
+                    // TODO: Open galaxy map
+                },
+                onRadarZoom: (zoomLevel) => {
+                    this.logger.debug(`Radar zoom: ${zoomLevel}x`);
+                    // TODO: Update radar zoom
+                }
+            });
+            
             // Setup demo content
             this.setupDemoContent();
             
@@ -264,6 +312,21 @@ export class Game {
             // Handle weapon firing
             this.playerShip.fireWeapon();
             
+            // Demo damage testing (press 'T' to test damage)
+            if (this.input.isKeyPressed('KeyT')) {
+                this.playerShip.applyDamage(15, Math.random() > 0.5 ? 
+                    ShipSection.Engineering : ShipSection.Weapons
+                );
+                this.logger.info('🧪 Demo damage applied');
+            }
+            
+            // Demo system toggle (press 'Y' to toggle engines)
+            if (this.input.isKeyPressed('KeyY')) {
+                const currentStatus = this.playerShip.getSystemStatus();
+                this.playerShip.toggleSystem(SystemType.Engines, !currentStatus.enginesOnline);
+                this.logger.info(`🧪 Engines ${!currentStatus.enginesOnline ? 'enabled' : 'disabled'}`);
+            }
+            
             // Handle pause input
             if (this.input.isPausePressed()) {
                 if (this.stateManager.canPause()) {
@@ -271,6 +334,17 @@ export class Game {
                 } else if (this.stateManager.canResume()) {
                     this.stateManager.setState(GameState.Playing);
                 }
+            }
+        }
+        
+        // Update cockpit UI
+        if (this.cockpitStatusBar) {
+            this.cockpitStatusBar.update(deltaTime, this.input);
+            
+            // Update UI with current ship status
+            if (this.playerShip) {
+                this.cockpitStatusBar.updateSystemStatus(this.playerShip.getSystemStatus());
+                this.cockpitStatusBar.updateDamageReports(this.playerShip.getShipSystems().getDamageReports());
             }
         }
     }
@@ -289,6 +363,11 @@ export class Game {
         if (this.playerShip && this.stateManager.isGameActive()) {
             // Render thrust particles
             this.playerShip.renderThrustParticles(this.renderer);
+        }
+        
+        // Render cockpit status bar
+        if (this.cockpitStatusBar) {
+            this.cockpitStatusBar.render(this.renderer);
         }
         
         // Render debug information if enabled

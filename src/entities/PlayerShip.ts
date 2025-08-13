@@ -8,6 +8,7 @@ import { InputManager } from '@core/InputManager';
 import { AudioEngine } from '@core/AudioEngine';
 import { Vector2 } from '@core/Renderer';
 import { Logger } from '@utils/Logger';
+import { ShipSystems, SystemStatus, PowerAllocation, ShipSection, SystemType } from '@entities/ShipSystems';
 
 export interface ShipStats {
     maxHealth: number;
@@ -23,6 +24,9 @@ export class PlayerShip {
     private physics: SpacePhysics;
     private input: InputManager;
     private audio: AudioEngine;
+    
+    // Ship systems
+    private shipSystems: ShipSystems;
     
     // Ship properties
     private stats: ShipStats;
@@ -71,6 +75,28 @@ export class PlayerShip {
         // Add to physics simulation
         this.physics.addObject(this.physicsObject);
         
+        // Initialize ship systems
+        this.shipSystems = new ShipSystems({
+            maxHull: this.stats.maxHealth,
+            maxFuel: this.stats.maxFuel,
+            enginePower: this.stats.thrustPower,
+            engineEfficiency: 0.85
+        }, {
+            onSystemDamage: (system, severity) => {
+                this.logger.warn(`⚠️ ${system} system damaged: ${severity}`);
+                this.audio.playUIBeep();
+            },
+            onCriticalDamage: (section) => {
+                this.logger.error(`💥 Critical damage in ${section} section!`);
+            },
+            onPowerFailure: () => {
+                this.logger.error('⚡ Power failure - emergency protocols activated');
+            },
+            onOverheat: () => {
+                this.logger.warn('🔥 Ship overheating - reducing power');
+            }
+        });
+        
         this.logger.info('🚀 Player ship created', {
             position: startPosition,
             stats: this.stats
@@ -81,6 +107,9 @@ export class PlayerShip {
      * Update the player ship
      */
     update(deltaTime: number): void {
+        // Update ship systems first
+        this.shipSystems.update(deltaTime);
+        
         // Handle input
         this.handleInput(deltaTime);
         
@@ -406,7 +435,45 @@ export class PlayerShip {
      * Check if ship is alive
      */
     isAlive(): boolean {
-        return (this.physicsObject.health || 0) > 0;
+        return this.shipSystems.getStatus().hull > 0;
+    }
+    
+    /**
+     * Get ship systems status
+     */
+    getSystemStatus(): SystemStatus {
+        return this.shipSystems.getStatus();
+    }
+    
+    /**
+     * Get ship systems instance
+     */
+    getShipSystems(): ShipSystems {
+        return this.shipSystems;
+    }
+    
+    /**
+     * Apply damage to ship systems
+     */
+    applyDamage(amount: number, section: ShipSection = ShipSection.Core, damageType: 'kinetic' | 'energy' | 'thermal' = 'kinetic'): void {
+        this.shipSystems.applyDamage(section, amount, damageType);
+        
+        // Update physics object health
+        this.physicsObject.health = this.shipSystems.getStatus().hull;
+    }
+    
+    /**
+     * Set power allocation
+     */
+    setPowerAllocation(allocation: Partial<PowerAllocation>): void {
+        this.shipSystems.setPowerAllocation(allocation);
+    }
+    
+    /**
+     * Toggle ship system
+     */
+    toggleSystem(system: SystemType, state?: boolean): void {
+        this.shipSystems.toggleSystem(system, state);
     }
 
     /**
