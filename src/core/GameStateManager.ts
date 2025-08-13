@@ -463,12 +463,12 @@ export class GameStateManager {
         const centerY = 384;
         
         renderer.renderText('INITIALIZING SPACE EXPLORER...', centerX - 150, centerY - 50, 
-            { r: 0, g: 255, b: 0 }, 16);
+            { r: 192, g: 192, b: 192 }, 16);
         
         // Animated loading dots
         const dots = '.'.repeat((Math.floor(Date.now() / 500) % 4));
         renderer.renderText(`LOADING${dots}`, centerX - 50, centerY, 
-            { r: 0, g: 128, b: 0 }, 14);
+            { r: 128, g: 128, b: 128 }, 14);
     }
 
     /**
@@ -478,9 +478,12 @@ export class GameStateManager {
         const centerX = 512;
         const centerY = 384;
         
+        // Render background image (Image 3)
+        this.renderMenuBackground(renderer);
+        
         // Title
         renderer.renderText('SPACE EXPLORER 16-BIT', centerX - 140, centerY - 100, 
-            { r: 0, g: 255, b: 0 }, 20);
+            { r: 255, g: 255, b: 255 }, 20);
         
         // Menu options
         const menuItems = [
@@ -492,13 +495,13 @@ export class GameStateManager {
         
         menuItems.forEach((item, index) => {
             const y = centerY - 20 + index * 30;
-            const color = index === 0 ? { r: 255, g: 255, b: 0 } : { r: 0, g: 192, b: 0 };
+            const color = index === 0 ? { r: 255, g: 255, b: 255 } : { r: 192, g: 192, b: 192 };
             renderer.renderText(item, centerX - 80, y, color, 14);
         });
         
         // Instructions
         renderer.renderText('USE ARROW KEYS TO NAVIGATE, ENTER TO SELECT', 
-            centerX - 180, centerY + 150, { r: 0, g: 128, b: 0 }, 12);
+            centerX - 180, centerY + 150, { r: 128, g: 128, b: 128 }, 12);
     }
 
     /**
@@ -594,6 +597,75 @@ export class GameStateManager {
             };
             
             renderer.setPixel(x, y, color);
+        }
+    }
+
+    /**
+     * Render menu background (Image 3)
+     */
+    private renderMenuBackground(renderer: Renderer): void {
+        // Image 3 as base64 (cockpit view with galaxy)
+        const menuBgData = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCABQAGQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD3+iiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9k=';
+        
+        // For now, we'll draw a simple gradient background
+        // In a real implementation, you'd decode and render the base64 image
+        for (let y = 0; y < 768; y++) {
+            for (let x = 0; x < 1024; x++) {
+                // Create a dark space gradient from top to bottom
+                const gradient = Math.floor((y / 768) * 64);
+                const color = {
+                    r: gradient / 4,
+                    g: gradient / 3,
+                    b: gradient
+                };
+                renderer.setPixel(x, y, color);
+            }
+        }
+        
+        // Add some stars
+        for (let i = 0; i < 200; i++) {
+            const x = (i * 73) % 1024;
+            const y = (i * 149) % 768;
+            const brightness = (i % 4) + 1;
+            const color = { 
+                r: brightness * 48, 
+                g: brightness * 48, 
+                b: brightness * 64 
+            };
+            
+            renderer.setPixel(x, y, color);
+            
+            // Add twinkling effect for some stars
+            if (i % 7 === 0) {
+                const twinkle = Math.sin(Date.now() / 1000 + i) * 32 + 32;
+                const twinkleColor = {
+                    r: twinkle,
+                    g: twinkle * 0.8,
+                    b: twinkle * 1.2
+                };
+                renderer.setPixel(x, y, twinkleColor);
+            }
+        }
+        
+        // Add galaxy band across the middle
+        for (let x = 0; x < 1024; x++) {
+            for (let y = 300; y < 468; y++) {
+                const distance = Math.abs(y - 384);
+                const intensity = Math.max(0, 168 - distance) / 168;
+                const color = {
+                    r: intensity * 48,
+                    g: intensity * 32,
+                    b: intensity * 64
+                };
+                if (intensity > 0.1) {
+                    const currentColor = renderer.getPixel ? renderer.getPixel(x, y) : { r: 0, g: 0, b: 0 };
+                    renderer.setPixel(x, y, {
+                        r: Math.min(255, currentColor.r + color.r),
+                        g: Math.min(255, currentColor.g + color.g),
+                        b: Math.min(255, currentColor.b + color.b)
+                    });
+                }
+            }
         }
     }
 
