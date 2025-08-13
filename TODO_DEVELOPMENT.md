@@ -1,31 +1,45 @@
 # TODO LIST - 2D 16-BIT SPACE EXPLORATION GAME
+# AI DEVELOPMENT TASKS
 
-## 🚀 FÁZE 1: PŘÍPRAVA A CORE SYSTÉMY (Týdny 1-4)
+## ⚠️ POZNÁMKA PRO AI:
+Tento TODO list je určen pro AI asistenta, který bude vytvářet:
+- Kompletní zdrojový kód (GDScript files)
+- Všechny game assety (pixel art sprites, UI, audio)
+- Shader efekty a rendering systémy
+- Herní logiku a algoritmy
+- Dokumentaci a komentáře
 
-### Technická infrastruktura
-- [ ] Nainstalovat Godot 4.x
-- [ ] Vytvořit nový 2D projekt s pixel art nastaveními
-- [ ] Nastavit project settings pro pixel perfect rendering
-- [ ] Vytvořit folder strukturu (assets, scripts, scenes, shaders)
-- [ ] Inicializovat Git repository s LFS pro assets
-- [ ] Nastavit .gitignore pro Godot
-- [ ] Vytvořit základní README s development notes
+## 🚀 FÁZE 1: PŘÍPRAVA A CORE SYSTÉMY (Týdny 1-4) - AI VYTVOŘÍ
 
-### Rendering systém
-- [ ] Implementovat pixel perfect camera controller
-- [ ] Vytvořit dithering shader pro smooth color transitions
-- [ ] Implementovat depth layering system
-- [ ] Vytvořit CRT shader (scanlines, chromatic aberration)
-- [ ] Nastavit camera s smooth following a zoom
-- [ ] Vytvořit color palette manager pro 16-bit aesthetic
+### Technická infrastruktura - AI IMPLEMENTUJE
+- [ ] AI: Vytvořit Godot 4.x project file (project.godot)
+- [ ] AI: Nastavit project settings pro pixel perfect rendering
+- [ ] AI: Vytvořit kompletní folder strukturu (assets/, scripts/, scenes/, shaders/)
+- [ ] AI: Implementovat .gitignore pro Godot
+- [ ] AI: Vytvořit README s development notes a progress tracking
+- [ ] AI: Nastavit Git repository pro tracking změn
 
-### Základní herní loop
-- [ ] Implementovat GameStateManager (Menu/Game/Pause)
-- [ ] Vytvořit SceneManager pro Star System/Interstellar Space
-- [ ] Nastavit input handling system
-- [ ] Implementovat základní player ship s movement
-- [ ] Vytvořit basic ship rotation mechanics
-- [ ] Implementovat pause menu functionality
+### Rendering systém - AI NAPROGRAMUJE
+- [ ] AI: Naprogramovat pixel perfect camera controller (.gd script)
+- [ ] AI: Vytvořit dithering shader (.gdshader file)
+- [ ] AI: Implementovat depth layering system (GDScript)
+- [ ] AI: Vytvořit CRT shader (scanlines, chromatic aberration)
+- [ ] AI: Naprogramovat camera s smooth following a zoom
+- [ ] AI: Vytvořit color palette manager pro 16-bit aesthetic
+
+### Základní herní loop - AI VYTVOŘÍ KÓD
+- [ ] AI: Naprogramovat GameStateManager (Menu/Game/Pause states)
+- [ ] AI: Vytvořit SceneManager pro Star System/Interstellar Space
+- [ ] AI: Implementovat input handling system (GDScript)
+- [ ] AI: Naprogramovat basic player ship s movement physics
+- [ ] AI: Vytvořit basic ship rotation mechanics
+- [ ] AI: Implementovat pause menu functionality
+
+### Asset Creation - AI GENERUJE
+- [ ] AI: Vytvořit základní ship sprite (16-bit pixel art)
+- [ ] AI: Generovat space background texture
+- [ ] AI: Vytvořit základní UI elementy (buttons, panels)
+- [ ] AI: Implementovat sprite loading system
 
 ## 🌌 FÁZE 2: PROCEDURÁLNÍ GENEROVÁNÍ (Týdny 5-8)
 
@@ -318,29 +332,48 @@
 - [ ] Implementovat level editor
 - [ ] Vytvořit asset validation tools
 
-## 📋 IMMEDIATE NEXT STEPS
+## 📋 IMMEDIATE NEXT STEPS - AI DEVELOPMENT PRIORITY
 
-### Priority 1 (Start immediately)
-- [ ] Nastavit Godot 4.x projekt
-- [ ] Vytvořit Git repository
-- [ ] Implementovat basic camera system
-- [ ] Vytvořit první ship sprite
-- [ ] Implementovat základní movement
+### Priority 1 (AI začne ihned po schválení)
+- [ ] AI: Vytvořit kompletní Godot 4.x projekt struktura
+- [ ] AI: Implementovat Git tracking pro development progress
+- [ ] AI: Naprogramovat basic camera system (GDScript)
+- [ ] AI: Vytvořit první ship sprite (pixel art asset)
+- [ ] AI: Implementovat základní movement physics
 
-### Priority 2 (Week 2)
-- [ ] Vytvořit color palette
-- [ ] Implementovat dithering shader
-- [ ] Vytvořit basic star system
-- [ ] Implementovat ship rotation
-- [ ] Vytvořit basic UI framework
+### Priority 2 (AI Týden 2)
+- [ ] AI: Vytvořit 16-bit color palette systém
+- [ ] AI: Naprogramovat dithering shader
+- [ ] AI: Vytvořit basic star system generator
+- [ ] AI: Implementovat ship rotation mechanics
+- [ ] AI: Naprogramovat basic UI framework
 
-### Priority 3 (Week 3-4)
-- [ ] Implementovat basic physics
-- [ ] Vytvořit procedural star generation
-- [ ] Implementovat camera following
-- [ ] Vytvořit basic background system
-- [ ] Implementovat scene management
+### Priority 3 (AI Týden 3-4)
+- [ ] AI: Implementovat realistic space physics
+- [ ] AI: Vytvořit procedural star generation algorithms
+- [ ] AI: Naprogramovat camera following system
+- [ ] AI: Vytvořit multi-layer background system
+- [ ] AI: Implementovat scene management architecture
 
-**Status:** 🔄 Ready to begin development
-**Estimated Timeline:** 44 týdnů (11 měsíců)
-**Current Phase:** Příprava - nastávající začátek FÁZE 1
+## 🤖 AI DEVELOPMENT WORKFLOW
+
+### Před začátkem každé fáze:
+1. **Konzultace s uživatelem** - potvrzení priority a požadavků
+2. **Detailní breakdown** úkolů na konkrétní implementace
+3. **Estimate času** potřebného pro dokončení
+
+### Během vývoje:
+1. **Postupné vytváření** souborů a implementace funkcí
+2. **Průběžné commity** s popisem změn
+3. **Testing** vytvořených komponentů
+4. **Dokumentace** kódu a progress updates
+
+### Po dokončení fáze:
+1. **Demonstrace** funkcionality
+2. **Testing a debugging** 
+3. **Feedback** od uživatele
+4. **Iterace** a vylepšení podle potřeby
+
+**Status:** 🔄 Ready to begin AI development
+**Estimated Timeline:** 44 týdnů (11 měsíců) AI-driven development
+**Current Phase:** Čeká na schválení pro začátek FÁZE 1

@@ -1,45 +1,57 @@
 # KOMPLEXNÍ PLÁN VÝVOJE - 2D 16-BIT SPACE OPEN-WORLD HRA
+# AI-DRIVEN DEVELOPMENT PLAN
+
+## ⚠️ POZNÁMKA: 
+Tento plán je určen pro AI asistenta, který bude vytvářet VŠECHNY komponenty hry:
+- Kompletní zdrojový kód (GDScript)
+- Všechny game assety (sprites, UI, audio)
+- Shader efekty a rendering systémy
+- Herní logiku a algoritmy
+- Dokumentaci a komentáře
 
 ## FÁZE 1: PŘÍPRAVA A CORE SYSTÉMY (Týdny 1-4)
 
-### 1.1 Technická infrastruktura
-- **Výběr game enginu:** Unity 2D nebo Godot (doporučuji Godot pro lepší 2D support)
-- **Nastavení projektu:** Git repository, základní folder struktura
-- **Pixel art pipeline:** Nastavení pro 16-bit aesthetic, color palettes
-- **Asset organization:** Sprite sheets, animations, UI elements
+### 1.1 Technická infrastruktura - AI IMPLEMENTACE
+- **Vytvoření Godot 4.x projektu** s kompletním nastavením
+- **Generování folder struktury** pro assets, scripts, scenes
+- **Implementace pixel art pipeline** s perfect pixel settings
+- **Vytvoření color palette systému** pro 16-bit aesthetic
 
-### 1.2 Core rendering systém
-- **Pixelový rendering pipeline** s perfect pixel scaling
-- **Dithering shader system** pro plynulé barevné přechody
-- **Depth layering system** pro 3D efekt v 2D prostoru
-- **CRT shader effects:** scanlines, chromatic aberration, screen curvature
-- **Camera system** s smooth following a zoom
+### 1.2 Core rendering systém - AI VYTVOŘÍ
+- **Naprogramování pixelového rendering pipeline** s perfect pixel scaling
+- **Vytvoření dithering shader** pro plynulé barevné přechody
+- **Implementace depth layering systému** pro 3D efekt v 2D prostoru
+- **Naprogramování CRT shader effects:** scanlines, chromatic aberration, screen curvature
+- **Vytvoření camera systému** s smooth following a zoom
 
-### 1.3 Základní herní loop
-- **Game state manager** (Menu, Game, Pause states)
-- **Scene management** (Star System, Interstellar Space)
-- **Input handling system**
-- **Basic player ship** s pohybem a rotací
+### 1.3 Základní herní loop - AI VYTVOŘÍ
+- **Naprogramování Game state manageru** (Menu, Game, Pause states)
+- **Implementace Scene managementu** (Star System, Interstellar Space)
+- **Vytvoření input handling systému**
+- **Naprogramování basic player ship** s pohybem a rotací
+- **Vytvoření základních sprite assetů** pro loď
 
-## FÁZE 2: PROCEDURÁLNÍ GENEROVÁNÍ (Týdny 5-8)
+## FÁZE 2: PROCEDURÁLNÍ GENEROVÁNÍ (Týdny 5-8) - AI IMPLEMENTACE
 
-### 2.1 Galaxy generation
-- **Galactic structure algorithm** - spirální ramena, core region
-- **Star system placement** s realistickými vzdálenostmi (light years)
-- **Star type generation** - main sequence, giants, dwarfs, exotic objects
-- **System boundaries** a transition zones
+### 2.1 Galaxy generation - AI NAPROGRAMUJE
+- **Naprogramování galactic structure algoritmu** - spirální ramena, core region
+- **Implementace star system placement** s realistickými vzdálenostmi (light years)
+- **Vytvoření star type generation** - main sequence, giants, dwarfs, exotic objects
+- **Naprogramování system boundaries** a transition zones
+- **Vytvoření galaxy visualization assetů**
 
-### 2.2 Star system generation
-- **Procedural star system creator**
-- **Orbital mechanics calculator** - realistic distances (AU)
-- **Planet/moon generation** s různými typy povrchů
-- **Asteroid belt a comet generation**
-- **System object spawner** - stations, derelicts, megastructures
+### 2.2 Star system generation - AI VYTVOŘÍ
+- **Naprogramování procedural star system creator**
+- **Implementace orbital mechanics calculator** - realistic distances (AU)
+- **Vytvoření planet/moon generation** s různými typy povrchů
+- **Naprogramování asteroid belt a comet generation**
+- **Implementace system object spawner** - stations, derelicts, megastructures
+- **Vytvoření všech sprite assetů** pro nebeská tělesa
 
-### 2.3 Persistence systém
-- **Save/Load architecture** pro massive world data
-- **Chunk-based loading** pro optimalizaci paměti
-- **Seed-based generation** pro konzistentní procedural content
+### 2.3 Persistence systém - AI NAPROGRAMUJE
+- **Implementace save/Load architecture** pro massive world data
+- **Naprogramování chunk-based loading** pro optimalizaci paměti
+- **Vytvoření seed-based generation** pro konzistentní procedural content
 
 ## FÁZE 3: SHIP SYSTEMS A PHYSICS (Týdny 9-12)
 
@@ -244,37 +256,51 @@
 2. **Advanced diplomacy** - can be basic initially
 3. **Achievement system** - purely cosmetic
 
-## ASSET REQUIREMENTS
+## ASSET REQUIREMENTS - AI VYTVOŘÍ VŠECHNY
 
-### Art Assets Needed
-- **Ship sprites** (multiple types, damage states)
-- **Planetary textures** (30-frame rotation sets)
-- **UI elements** (16-bit retro style)
-- **Weapon effects** a projectiles
-- **Space backgrounds** (multi-layer parallax)
-- **Item icons** (comprehensive database)
+### Art Assets - AI GENERUJE
+- **Ship sprites** (multiple types, damage states) - AI vytvoří 16-bit pixelové assety
+- **Planetary textures** (30-frame rotation sets) - AI vytvoří rotační animace
+- **UI elements** (16-bit retro style) - AI navrhne a vytvoří celé UI
+- **Weapon effects** a projectiles - AI vytvoří particle systémy a sprite efekty
+- **Space backgrounds** (multi-layer parallax) - AI vytvoří vrstevnaté pozadí
+- **Item icons** (comprehensive database) - AI vytvoří ikony pro všechny itemy
 
-### Audio Assets
-- **Sound effects** (16-bit style)
-- **Background music** (retro synth)
-- **Ambient space sounds**
-- **UI interaction sounds**
+### Audio Assets - AI IMPLEMENTUJE
+- **Sound effects** (16-bit style) - AI vytvoří procedurální nebo statické zvuky
+- **Background music** (retro synth) - AI implementuje dynamický audio systém
+- **Ambient space sounds** - AI vytvoří atmosferické zvuky
+- **UI interaction sounds** - AI vytvoří feedback zvuky
 
-## DEVELOPMENT TOOLS
+## DEVELOPMENT TOOLS - AI VYUŽÍVÁ
 
-### Recommended Tech Stack
-- **Game Engine:** Godot 4.x (excellent 2D support)
-- **Art Tools:** Aseprite (pixel art), GIMP
-- **Audio Tools:** Audacity, ChipTone
-- **Version Control:** Git with LFS for assets
-- **Project Management:** Local todo system
+### Tech Stack pro AI Development
+- **Game Engine:** Godot 4.x (AI bude vytvářet .gd skripty)
+- **Asset Creation:** AI generuje pixel art v kódu nebo jako obrázky
+- **Audio Generation:** AI vytváří audio systémy a procedurální zvuky
+- **Version Control:** Git - AI commituje progress
+- **Documentation:** AI vytváří komentáře a dokumentaci
 
-### Custom Tools Needed
-- **Galaxy generator** (standalone tool)
-- **Sprite animation processor**
-- **Asset pipeline tools**
-- **Save game editor** (for debugging)
+### Custom Tools - AI NAPROGRAMUJE
+- **Galaxy generator** (integrated do hry) - AI vytvoří jako součást enginu
+- **Sprite animation system** - AI naprogramuje v GDScript
+- **Asset management systém** - AI implementuje resource loading
+- **Debug tools** - AI vytvoří in-game debugging interface
 
-## ESTIMATED TIMELINE: 44 týdnů (11 měsíců)
+## ESTIMATED TIMELINE: 44 týdnů (11 měsíců) - AI DEVELOPMENT
 
-Tento plán je ambiciózní ale realizovatelný s dedikovaným přístupem. Každá fáze má clear deliverables a může být testována independently.
+Tento plán je určen pro AI asistenta který bude:
+- **Vytvářet veškerý zdrojový kód** ve fázích podle priorit
+- **Generovat všechny game assety** (sprites, UI, audio)
+- **Implementovat kompletní herní systémy** od základů
+- **Testovat a debugovat** vytvořené komponenty
+- **Dokumentovat progress** a poskytovat updates
+
+### AI WORKFLOW:
+1. **Kontrola s uživatelem** před začátkem každé fáze
+2. **Postupné vytváření** komponentů s průběžnými commity
+3. **Testing a demonstrace** funkcionality
+4. **Iterace** na základě feedback
+5. **Přechod** na další fázi po schválení
+
+Každá fáze má clear deliverables a může být testována nezávisle.
