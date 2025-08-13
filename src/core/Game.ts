@@ -15,6 +15,7 @@ import { GalaxyManager } from '@procedural/GalaxyManager';
 import { CockpitStatusBar } from '@ui/CockpitStatusBar';
 import { ShipSection, SystemType } from '@entities/ShipSystems';
 import { CelestialManager } from '@managers/CelestialManager';
+import { SpaceBackground } from '@rendering/SpaceBackground';
 
 export interface GameConfig {
     targetFPS: number;
@@ -47,6 +48,9 @@ export class Game {
     
     // Celestial systems
     private celestialManager: CelestialManager | null = null;
+    
+    // Background rendering
+    private spaceBackground: SpaceBackground | null = null;
     
     // Game loop
     private isRunning = false;
@@ -234,6 +238,16 @@ export class Game {
                 }
             });
             
+            // Initialize space background
+            this.spaceBackground = new SpaceBackground({
+                starCount: 300,
+                starLayers: 5,
+                parallaxStrength: 0.3,
+                enableDistortion: true,
+                galaxyBandIntensity: 0.4,
+                nebulaOpacity: 0.2
+            });
+            
             // Setup demo content
             this.setupDemoContent();
             
@@ -369,6 +383,13 @@ export class Game {
                 }
             }
             
+            // Demo warp drive (press 'W' for warp toggle - already handled in PlayerShip)
+            // Just log current warp state for debugging
+            if (this.input.isKeyPressed('KeyW')) {
+                const warpState = this.playerShip.getWarpState();
+                this.logger.info(`🌌 Warp state: ${warpState}`);
+            }
+            
             // Handle pause input
             if (this.input.isPausePressed()) {
                 if (this.stateManager.canPause()) {
@@ -394,6 +415,21 @@ export class Game {
         if (this.celestialManager && this.playerShip) {
             this.celestialManager.update(deltaTime, this.input, this.playerShip.getPosition());
         }
+        
+        // Update space background
+        if (this.spaceBackground) {
+            this.spaceBackground.update(deltaTime);
+            
+            // Handle warp distortion effects
+            if (this.playerShip && this.playerShip.isWarpActive()) {
+                const warpDistortion = this.playerShip.getWarpDrive().getSpaceDistortion();
+                this.spaceBackground.updateWarpDistortion(warpDistortion);
+            } else if (this.playerShip && this.playerShip.getWarpState() === 'deactivating') {
+                // Gradually restore background during warp deactivation
+                const progress = this.playerShip.getWarpDrive().getWarpProgress();
+                this.spaceBackground.gradualRestore(progress);
+            }
+        }
     }
 
     /**
@@ -403,6 +439,11 @@ export class Game {
         // Clear canvas and setup rendering
         this.renderer.beginFrame();
         
+        // Render space background first
+        if (this.spaceBackground && this.playerShip && this.stateManager.isGameActive()) {
+            this.spaceBackground.render(this.renderer, this.playerShip.getPosition());
+        }
+        
         // Render current game state
         this.stateManager.render(this.renderer);
         
@@ -410,6 +451,9 @@ export class Game {
         if (this.playerShip && this.stateManager.isGameActive()) {
             // Render thrust particles
             this.playerShip.renderThrustParticles(this.renderer);
+            
+            // Render warp effects (on top of ship)
+            this.playerShip.renderWarpEffects(this.renderer);
         }
         
         // Render celestial bodies

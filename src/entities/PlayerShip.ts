@@ -9,6 +9,7 @@ import { AudioEngine } from '@core/AudioEngine';
 import { Vector2 } from '@core/Renderer';
 import { Logger } from '@utils/Logger';
 import { ShipSystems, SystemStatus, PowerAllocation, ShipSection, SystemType } from '@entities/ShipSystems';
+import { WarpDrive, WarpState } from '@systems/WarpDrive';
 
 export interface ShipStats {
     maxHealth: number;
@@ -27,6 +28,7 @@ export class PlayerShip {
     
     // Ship systems
     private shipSystems: ShipSystems;
+    private warpDrive: WarpDrive;
     
     // Ship properties
     private stats: ShipStats;
@@ -97,6 +99,26 @@ export class PlayerShip {
             }
         });
         
+        // Initialize warp drive
+        this.warpDrive = new WarpDrive({
+            speedMultiplier: 20.0,
+            energyCost: 15.0,
+            particleCount: 50
+        }, {
+            onWarpStart: () => {
+                this.logger.info('🌌 Warp drive activation sequence initiated');
+            },
+            onWarpEnd: () => {
+                this.logger.info('✅ Warp drive deactivation complete');
+            },
+            onBlackHoleFormed: () => {
+                this.logger.info('🕳️ Black hole formation complete');
+            },
+            onSpaceDistorted: () => {
+                this.logger.info('🌀 Space-time distortion field active');
+            }
+        });
+        
         this.logger.info('🚀 Player ship created', {
             position: startPosition,
             stats: this.stats
@@ -110,14 +132,17 @@ export class PlayerShip {
         // Update ship systems first
         this.shipSystems.update(deltaTime);
         
+        // Update warp drive
+        const warpSpeedMultiplier = this.warpDrive.update(deltaTime, this.physicsObject.position);
+        
         // Handle input
         this.handleInput(deltaTime);
         
         // Update rotation based on input
         this.updateRotation(deltaTime);
         
-        // Update thrust and movement
-        this.updateMovement(deltaTime);
+        // Update thrust and movement (affected by warp speed)
+        this.updateMovement(deltaTime, warpSpeedMultiplier);
         
         // Update visual effects
         this.updateThrustParticles(deltaTime);
@@ -133,6 +158,11 @@ export class PlayerShip {
      * Handle player input
      */
     private handleInput(deltaTime: number): void {
+        // Warp drive controls
+        if (this.input.isKeyPressed('KeyW') || this.input.isActionPressed('warp')) {
+            this.handleWarpInput();
+        }
+        
         // Get input values
         const thrustInput = this.input.getThrustInput();
         const rotationInput = this.input.getRotationInput();
@@ -157,9 +187,34 @@ export class PlayerShip {
     }
 
     /**
+     * Handle warp drive input
+     */
+    private handleWarpInput(): void {
+        const systemStatus = this.shipSystems.getStatus();
+        
+        // Check if warp drive is available
+        if (!systemStatus.warpDrive) {
+            this.logger.warn('⚠️ Warp drive offline');
+            return;
+        }
+        
+        if (systemStatus.power < 20) {
+            this.logger.warn('⚠️ Insufficient power for warp drive');
+            return;
+        }
+        
+        // Toggle warp drive
+        if (this.warpDrive.isWarpActive()) {
+            this.warpDrive.deactivateWarp();
+        } else if (!this.warpDrive.isWarpCharging()) {
+            this.warpDrive.activateWarp(this.physicsObject.position, 20); // Ship size
+        }
+    }
+
+    /**
      * Update ship movement and thrust
      */
-    private updateMovement(deltaTime: number): void {
+    private updateMovement(deltaTime: number, speedMultiplier: number = 1.0): void {
         if (this.thrustLevel > 0 && this.currentFuel > 0) {
             // Calculate thrust direction based on rotation
             const thrustDirection: Vector2 = {
@@ -167,8 +222,8 @@ export class PlayerShip {
                 y: Math.sin(this.rotation - Math.PI / 2)
             };
             
-            // Apply thrust
-            const thrustForce = this.thrustLevel * this.stats.thrustPower;
+            // Apply thrust (affected by warp speed multiplier)
+            const thrustForce = this.thrustLevel * this.stats.thrustPower * speedMultiplier;
             this.physics.applyThrust(this.physicsObject.id, thrustDirection, thrustForce);
             
             // Create thrust particles
@@ -474,6 +529,34 @@ export class PlayerShip {
      */
     toggleSystem(system: SystemType, state?: boolean): void {
         this.shipSystems.toggleSystem(system, state);
+    }
+    
+    /**
+     * Get warp drive instance
+     */
+    getWarpDrive(): WarpDrive {
+        return this.warpDrive;
+    }
+    
+    /**
+     * Check if warp is active
+     */
+    isWarpActive(): boolean {
+        return this.warpDrive.isWarpActive();
+    }
+    
+    /**
+     * Get warp state
+     */
+    getWarpState(): WarpState {
+        return this.warpDrive.getState();
+    }
+    
+    /**
+     * Render warp effects
+     */
+    renderWarpEffects(renderer: any): void {
+        this.warpDrive.render(renderer);
     }
 
     /**

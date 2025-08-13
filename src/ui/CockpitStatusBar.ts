@@ -257,6 +257,9 @@ export class CockpitStatusBar {
         this.addElement('overheat_warning', panel.x + 10, panel.y + 75, 15, 15, 'button', 'HOT');
         this.addElement('ammo_warning', panel.x + 30, panel.y + 75, 15, 15, 'button', 'AMMO');
         this.addElement('energy_warning', panel.x + 50, panel.y + 75, 15, 15, 'button', 'PWR');
+        
+        // Warp drive button
+        this.addElement('warp_button', panel.x + 80, panel.y + 75, 50, 15, 'button', 'WARP');
     }
 
     /**
