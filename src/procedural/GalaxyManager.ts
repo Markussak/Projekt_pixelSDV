@@ -78,7 +78,7 @@ export class GalaxyManager {
             maxLoadedSystems: 100,
             galaxyConfig: {
                 seed: Math.floor(Math.random() * 1000000),
-                starCount: 800, // Reduced for better performance
+                starCount: 50, // Much smaller for web performance
                 size: 30000 // 30,000 light years
             },
             ...config
@@ -119,48 +119,77 @@ export class GalaxyManager {
         this.logger.info('🚀 Initializing galaxy...');
         
         try {
-            // Try to load existing galaxy
-            const savedData = await this.persistence.loadGalaxy();
+            // Set timeout for galaxy generation
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Galaxy generation timeout')), 10000); // 10 second timeout
+            });
             
-            if (savedData) {
-                // Load from save
-                this.logger.info('📁 Loading existing galaxy...');
-                this.generator = savedData.generator;
-                this.playerData = savedData.playerData;
-                
-                // Convert arrays back to Sets
-                this.explorationData = {
-                    exploredSystems: new Set(savedData.explorationData.exploredSystems),
-                    discoveredPlanets: new Set(savedData.explorationData.discoveredPlanets),
-                    visitedLocations: savedData.explorationData.visitedLocations,
-                    currentSystemId: savedData.playerData.currentSystemId,
-                    homeSystemId: savedData.playerData.homeSystemId
-                };
-                
-            } else {
-                // Generate new galaxy
-                this.logger.info('🔄 Generating new galaxy...');
-                await this.generator.generateGalaxy();
-                
-                // Set up initial player data
-                await this.setupNewGame();
-            }
+            const initPromise = this.doInitialize();
             
-            // Load current system and nearby area
-            await this.loadCurrentArea();
-            
-            // Setup auto-save
-            if (this.config.enableAutoSave) {
-                this.setupAutoSave();
-            }
-            
-            this.isInitialized = true;
-            this.logger.info('✅ Galaxy initialization completed');
+            // Race between initialization and timeout
+            await Promise.race([initPromise, timeoutPromise]);
             
         } catch (error) {
-            this.logger.error('❌ Galaxy initialization failed', error);
-            throw error;
+            this.logger.error('❌ Galaxy initialization failed, using fallback', error);
+            // Fallback to minimal galaxy
+            await this.initializeFallbackGalaxy();
         }
+    }
+    
+    private async doInitialize(): Promise<void> {
+        // Try to load existing galaxy
+        const savedData = await this.persistence.loadGalaxy();
+        
+        if (savedData) {
+            // Load from save
+            this.logger.info('📁 Loading existing galaxy...');
+            this.generator = savedData.generator;
+            this.playerData = savedData.playerData;
+            
+            // Convert arrays back to Sets
+            this.explorationData = {
+                exploredSystems: new Set(savedData.explorationData.exploredSystems),
+                discoveredPlanets: new Set(savedData.explorationData.discoveredPlanets),
+                visitedLocations: savedData.explorationData.visitedLocations,
+                currentSystemId: savedData.playerData.currentSystemId,
+                homeSystemId: savedData.playerData.homeSystemId
+            };
+            
+        } else {
+            // Generate new galaxy
+            this.logger.info('🔄 Generating new galaxy...');
+            await this.generator.generateGalaxy();
+            
+            // Set up initial player data
+            await this.setupNewGame();
+        }
+        
+        // Load current system and nearby area
+        await this.loadCurrentArea();
+        
+        // Setup auto-save
+        if (this.config.enableAutoSave) {
+            this.setupAutoSave();
+        }
+        
+        this.isInitialized = true;
+        this.logger.info('✅ Galaxy initialization completed');
+    }
+    
+    private async initializeFallbackGalaxy(): Promise<void> {
+        this.logger.info('🔄 Creating minimal galaxy...');
+        
+        // Create a very simple galaxy with just a few stars
+        this.generator = new GalaxyGenerator({
+            ...this.config.galaxyConfig,
+            starCount: 5 // Minimal galaxy
+        });
+        
+        await this.generator.generateGalaxy();
+        await this.setupNewGame();
+        
+        this.isInitialized = true;
+        this.logger.info('✅ Fallback galaxy ready');
     }
 
     /**
