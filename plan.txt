@@ -1,0 +1,312 @@
+# KOMPLEXNÍ PLÁN VÝVOJE - 2D 16-BIT SPACE OPEN-WORLD HRA
+# AI-DRIVEN TYPESCRIPT/WEB DEVELOPMENT PLAN
+
+## ⚠️ POZNÁMKA: 
+Tento plán je určen pro AI asistenta, který bude vytvářet VŠECHNY komponenty hry:
+- Kompletní zdrojový kód (TypeScript + HTML5 Canvas)
+- Všechny game assety (procedural pixel art, UI, audio)
+- WebGL shader efekty a rendering systémy
+- Herní logiku a algoritmy
+- Dokumentaci a komentáře
+- Multi-platform deployment (PC .exe, mobile .apk, web)
+
+## FÁZE 1: PŘÍPRAVA A CORE SYSTÉMY (Týdny 1-4)
+
+### 1.1 Technická infrastruktura - AI IMPLEMENTACE
+- **Vytvoření TypeScript projektu** s Webpack/Vite build systémem
+- **Generování folder struktury** pro src/, assets/, dist/, types/
+- **Implementace HTML5 Canvas** s perfect pixel scaling
+- **Vytvoření color palette systému** pro 16-bit aesthetic
+- **Setup npm package.json** s všemi dependencies
+
+### 1.2 Core rendering systém - AI VYTVOŘÍ
+- **Naprogramování Canvas rendering pipeline** s pixel perfect scaling
+- **Vytvoření WebGL shaderů** pro dithering a barevné přechody
+- **Implementace depth layering systému** s z-index management
+- **Naprogramování CRT shader effects:** scanlines, chromatic aberration
+- **Vytvoření camera systému** s smooth following a zoom
+- **Implementace sprite systému** s procedural pixel art
+
+### 1.3 Základní herní loop - AI VYTVOŘÍ
+- **Naprogramování Game state manageru** (Menu, Game, Pause states)
+- **Implementace Scene managementu** (Star System, Interstellar Space)
+- **Vytvoření input handling** pro keyboard, mouse, touch
+- **Naprogramování basic player ship** s physics a movement
+- **Vytvoření procedural ship sprites** přímo v kódu
+
+## FÁZE 2: PROCEDURÁLNÍ GENEROVÁNÍ (Týdny 5-8) - AI IMPLEMENTACE
+
+### 2.1 Galaxy generation - AI NAPROGRAMUJE
+- **Naprogramování galactic structure algoritmu** - spirální ramena, core region
+- **Implementace star system placement** s realistickými vzdálenostmi (light years)
+- **Vytvoření star type generation** - main sequence, giants, dwarfs, exotic objects
+- **Naprogramování system boundaries** a transition zones
+- **Vytvoření galaxy visualization assetů**
+
+### 2.2 Star system generation - AI VYTVOŘÍ
+- **Naprogramování procedural star system creator**
+- **Implementace orbital mechanics calculator** - realistic distances (AU)
+- **Vytvoření planet/moon generation** s různými typy povrchů
+- **Naprogramování asteroid belt a comet generation**
+- **Implementace system object spawner** - stations, derelicts, megastructures
+- **Vytvoření všech sprite assetů** pro nebeská tělesa
+
+### 2.3 Persistence systém - AI NAPROGRAMUJE
+- **Implementace save/Load architecture** pro massive world data
+- **Naprogramování chunk-based loading** pro optimalizaci paměti
+- **Vytvoření seed-based generation** pro konzistentní procedural content
+
+## FÁZE 3: SHIP SYSTEMS A PHYSICS (Týdny 9-12)
+
+### 3.1 Realistic space physics
+- **Newtonian motion system** - setrvačnost, momentum
+- **Gravitational simulation** - n-body problem s optimalizací
+- **Orbital mechanics** - elliptical orbits, escape velocity
+- **Collision detection** a response system
+
+### 3.2 Ship systems core
+- **Modular ship architecture** - 8 damage sections
+- **Reactor a power management**
+- **Fuel consumption system**
+- **Shield technology** s directional strength
+- **Warp drive mechanics** - charge time, instability
+
+### 3.3 Status bar implementation
+- **5-panel cockpit UI** s 3D perspektívou
+- **Real-time system monitoring**
+- **Interactive controls** - sliders, switches, buttons
+- **CRT monitor simulation** s retrofuturistic styling
+- **Damage visualization system**
+
+## FÁZE 4: CELESTIAL BODIES A INTERACTIONS (Týdny 13-16)
+
+### 4.1 Planetary systems
+- **30-frame rotation animations** pro všechna tělesa
+- **Atmospheric rendering** pro applicable planets
+- **Surface generation** - diverse, realistic textures
+- **Moon orbital systems** kolem planets
+
+### 4.2 Interaction mechanics
+- **Proximity detection system**
+- **Pop-up information panels** s body data
+- **Orbital insertion mechanics**
+- **Landing sequence system**
+- **Mining mechanics** na planetary surfaces
+
+### 4.3 Space objects
+- **Dynamic object spawning** - ships, stations, derelicts
+- **Megastructure implementation** - Dyson spheres, ring worlds
+- **Asteroid mining systems**
+- **Space station docking**
+
+## FÁZE 5: NAVIGATION A WARP TRAVEL (Týdny 17-20)
+
+### 5.1 Interstellar travel
+- **Warp bubble simulation**
+- **System boundary detection**
+- **Seamless scene transitions**
+- **Interstellar space rendering** - up to 20 visible systems
+
+### 5.2 Navigation systems
+- **Radar implementation** s dual modes
+- **Galaxy map interface**
+- **Route planning system**
+- **Distance calculations** (AU/Light years)
+
+### 5.3 Background rendering
+- **Multi-layer parallax system**
+- **Procedural starfield generation**
+- **Nebula a galaxy cluster rendering**
+- **Home galaxy band visualization**
+
+## FÁZE 6: INVENTORY A ITEM SYSTEMS (Týdny 21-24)
+
+### 6.1 Comprehensive inventory
+- **Item database** - všechny prvky periodic table
+- **Weight-based cargo system**
+- **16-bit asset creation** pro každý item type
+- **Item categorization** - materials, tech, artifacts
+
+### 6.2 Crafting a manufacturing
+- **Recipe system** pro technology crafting
+- **Resource processing chains**
+- **Ship component manufacturing**
+- **Quality levels** a item variations
+
+### 6.3 Trading system
+- **Dynamic market prices**
+- **Supply/demand simulation**
+- **Trade route optimization**
+- **NPC trader interactions**
+
+## FÁZE 7: COMBAT SYSTEMS (Týdny 25-28)
+
+### 7.1 Weapon systems
+- **Projectile weapons** s ballistic physics
+- **Energy weapons** s heat management
+- **Missile systems** s guidance
+- **Weapon targeting AI**
+
+### 7.2 Combat mechanics
+- **Shield interaction system**
+- **Damage model** - component-based
+- **Combat AI** pro NPC ships
+- **Tactical combat interface**
+
+### 7.3 Defense systems
+- **Point defense systems**
+- **Electronic warfare**
+- **Stealth mechanics**
+- **Armor a hull integrity**
+
+## FÁZE 8: RPG SYSTEMS A PROGRESSION (Týdny 29-32)
+
+### 8.1 Character progression
+- **Level system implementation**
+- **Skill trees** s positive/negative modifiers
+- **Experience gain mechanics**
+- **Character customization**
+
+### 8.2 Research system
+- **Codex database**
+- **Research point accumulation**
+- **Technology tree browser**
+- **Discovery mechanics**
+
+### 8.3 Crew management
+- **Crew member system**
+- **Skill specializations**
+- **Crew interactions**
+- **Personnel management interface**
+
+## FÁZE 9: AI A DIPLOMACY (Týdny 33-36)
+
+### 9.1 Advanced AI
+- **Behavioral AI system** pro alien consciousness simulation
+- **Dynamic personality generation**
+- **Learning AI patterns**
+- **Emergent behavior systems**
+
+### 9.2 Diplomacy system
+- **Faction relationship tracking**
+- **Communication interface**
+- **Treaty a agreement system**
+- **Cultural exchange mechanics**
+
+### 9.3 Alien encounters
+- **First contact scenarios**
+- **Language barrier simulation**
+- **Cultural differences implementation**
+- **Reputation system**
+
+## FÁZE 10: POLISH A OPTIMIZATION (Týdny 37-40)
+
+### 10.1 Performance optimization
+- **Memory management optimization**
+- **Rendering optimization**
+- **Asset streaming improvements**
+- **Loading time minimization**
+
+### 10.2 Audio implementation
+- **16-bit style sound effects**
+- **Ambient space audio**
+- **Retro synthesizer music**
+- **Dynamic audio mixing**
+
+### 10.3 Final polish
+- **Bug fixing a testing**
+- **Balance adjustments**
+- **UI/UX improvements**
+- **Achievement system**
+
+## FÁZE 11: MENU SYSTEMS A GAME SETUP (Týdny 41-44)
+
+### 11.1 Main menu
+- **Retro mechanical button styling**
+- **Loading screen s tips system**
+- **Save game management**
+- **Settings configuration**
+
+### 11.2 New Game Setup
+- **5-screen setup wizard:**
+  1. Game/Galaxy settings
+  2. Pilot creation
+  3. Ship selection
+  4. Crew selection
+  5. Summary confirmation
+
+### 11.3 Game configuration
+- **Difficulty options**
+- **Galaxy size/density settings**
+- **Accessibility options**
+- **Control customization**
+
+## TECHNICKÉ PRIORITY
+
+### High Priority Components
+1. **Procedural generation engine** - základ celé hry
+2. **Physics simulation** - critical pro realism
+3. **Persistence system** - nutné pro open world
+4. **Rendering pipeline** - visual identity hry
+
+### Medium Priority Components
+1. **Combat system** - important ale ne critical na začátku
+2. **Trading/economy** - can be simplified initially
+3. **Advanced AI** - can start s basic behaviors
+
+### Low Priority Components
+1. **Megastructures** - cool ale not essential
+2. **Advanced diplomacy** - can be basic initially
+3. **Achievement system** - purely cosmetic
+
+## ASSET REQUIREMENTS - AI VYTVOŘÍ VŠECHNY
+
+### Art Assets - AI GENERUJE
+- **Ship sprites** (multiple types, damage states) - AI vytvoří 16-bit pixelové assety
+- **Planetary textures** (30-frame rotation sets) - AI vytvoří rotační animace
+- **UI elements** (16-bit retro style) - AI navrhne a vytvoří celé UI
+- **Weapon effects** a projectiles - AI vytvoří particle systémy a sprite efekty
+- **Space backgrounds** (multi-layer parallax) - AI vytvoří vrstevnaté pozadí
+- **Item icons** (comprehensive database) - AI vytvoří ikony pro všechny itemy
+
+### Audio Assets - AI IMPLEMENTUJE
+- **Sound effects** (16-bit style) - AI vytvoří procedurální nebo statické zvuky
+- **Background music** (retro synth) - AI implementuje dynamický audio systém
+- **Ambient space sounds** - AI vytvoří atmosferické zvuky
+- **UI interaction sounds** - AI vytvoří feedback zvuky
+
+## DEVELOPMENT TOOLS - AI VYUŽÍVÁ
+
+### Tech Stack pro AI Development
+- **Runtime:** TypeScript + HTML5 Canvas + WebGL
+- **Build System:** Vite/Webpack pro development a production builds
+- **Asset Creation:** AI generuje pixel art přímo v kódu (procedural)
+- **Audio Generation:** Web Audio API + procedurální audio syntéza
+- **Physics:** Custom physics engine nebo Matter.js integration
+- **Version Control:** Git - AI commituje progress
+- **Documentation:** AI vytváří TypeScript dokumentaci a komentáře
+
+### Custom Tools - AI NAPROGRAMUJE
+- **Galaxy generator** (integrated) - AI vytvoří procedural algoritmy
+- **Sprite animation system** - AI naprogramuje v TypeScript
+- **Asset management systém** - AI implementuje resource loading
+- **Debug tools** - AI vytvoří web-based debugging interface
+- **Multi-platform builder** - AI setup pro Tauri/Electron/Cordova
+
+## ESTIMATED TIMELINE: 44 týdnů (11 měsíců) - AI DEVELOPMENT
+
+Tento plán je určen pro AI asistenta který bude:
+- **Vytvářet veškerý zdrojový kód** ve fázích podle priorit
+- **Generovat všechny game assety** (sprites, UI, audio)
+- **Implementovat kompletní herní systémy** od základů
+- **Testovat a debugovat** vytvořené komponenty
+- **Dokumentovat progress** a poskytovat updates
+
+### AI WORKFLOW:
+1. **Kontrola s uživatelem** před začátkem každé fáze
+2. **Postupné vytváření** komponentů s průběžnými commity
+3. **Testing a demonstrace** funkcionality
+4. **Iterace** na základě feedback
+5. **Přechod** na další fázi po schválení
+
+Každá fáze má clear deliverables a může být testována nezávisle.

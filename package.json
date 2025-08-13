@@ -1,0 +1,57 @@
+{
+  "name": "space-explorer-16bit",
+  "version": "1.0.0",
+  "description": "2D 16-bit procedural space exploration game with retro CRT aesthetic",
+  "main": "src/main.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "build:tauri": "tauri build",
+    "build:cordova": "cordova build",
+    "deploy:web": "npm run build && gh-pages -d dist",
+    "test": "vitest",
+    "lint": "eslint src --ext .ts,.tsx",
+    "format": "prettier --write src/**/*.{ts,tsx,css,html}"
+  },
+  "dependencies": {
+    "howler": "^2.2.4",
+    "matter-js": "^0.19.0",
+    "simplex-noise": "^4.0.1"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.5.8",
+    "@types/howler": "^2.2.9",
+    "@types/matter-js": "^0.19.6",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "cordova": "^12.0.0",
+    "eslint": "^8.45.0",
+    "gh-pages": "^6.1.0",
+    "prettier": "^3.0.0",
+    "terser": "^5.43.1",
+    "typescript": "^5.0.2",
+    "vite": "^5.0.8",
+    "vitest": "^1.0.4"
+  },
+  "keywords": [
+    "game",
+    "space",
+    "16-bit",
+    "pixel-art",
+    "procedural",
+    "typescript",
+    "canvas",
+    "webgl"
+  ],
+  "author": "AI-Generated Space Explorer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/username/space-explorer-16bit.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
