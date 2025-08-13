@@ -495,8 +495,8 @@ export class Game {
         this.logger.info('🎮 Starting game...');
         
         try {
-            // Transition to initial game state
-            await this.stateManager.setState(GameState.Playing);
+            // Transition to main menu state instead of playing directly
+            await this.stateManager.setState(GameState.MainMenu);
             
             // Start the game loop
             this.isRunning = true;

@@ -24,7 +24,7 @@
         
         body {
             background: #000;
-            color: #0f0;
+            color: #cccccc;
             font-family: 'Courier New', monospace;
             overflow: hidden;
             touch-action: none;
@@ -45,14 +45,14 @@
         
         /* Main game canvas */
         #gameCanvas {
-            border: 2px solid #0f0;
+            border: 2px solid #888888;
             background: #000;
             image-rendering: pixelated;
             image-rendering: -moz-crisp-edges;
             image-rendering: crisp-edges;
             box-shadow: 
-                inset 0 0 50px rgba(0, 255, 0, 0.1),
-                0 0 20px rgba(0, 255, 0, 0.3);
+                inset 0 0 50px rgba(136, 136, 136, 0.1),
+                0 0 20px rgba(136, 136, 136, 0.3);
         }
         
         /* CRT scanline effect */
@@ -66,8 +66,8 @@
             background: repeating-linear-gradient(
                 transparent,
                 transparent 2px,
-                rgba(0, 255, 0, 0.03) 2px,
-                rgba(0, 255, 0, 0.03) 4px
+                rgba(136, 136, 136, 0.03) 2px,
+                rgba(136, 136, 136, 0.03) 4px
             );
             pointer-events: none;
         }
@@ -79,7 +79,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: #000;
+            background: #000 url('data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAkAEADASIAAhEBAxEB/8QAHAAAAQUBAQEAAAAAAAAAAAAABAIDBQYHAQAI/8QALhAAAgEDAwMCBQQDAQEAAAAAAQIDAAQRBRIhBjFBE1EiYXGBkQcUMqGxwfEV/8QAGQEAAQUBAAAAAAAAAAAAAAAAAQACAwQF/8QAJREAAgEDAwQDAQEAAAAAAAAAAQIAAxEhEjEEQVFhIoGRscHR/9oADAMBAAIRAxEAPwD2u2XwIhgE6z7qQv7L+RlJqKRJ+wSJiCVIKp3HjP8ArH2FWnqGBLrS5Y5Lfy5U2kAjsacr1j9J/aE7SfZ4xqN0rMZH5/sK3qPWNs5t5rmeKG1nuIo45JzuKq+ATnPJyOavcmz5c1iNc6tn6ev9QGjOqBJvYdNWzGXuXK5P4zWR3epTaveyXF1MXkmOZJCMZY++PSrX+qfVdlc3Nvp8VrNJbJK37O8jnYm4l8kA45GTjNZ5VldQ0CjApEykamYZ3v0h+rSTOSZnhNnJqLZA3FxjP961awvnV5JN4O1YxAYidyKOF4znO3vVR1zUJrfQ9OsZJNtw8SvOyDAYnvxWp2nXN5qHpXTT2puY5ViVhGVJA+eKSGo+XB7GNOSKYVnp/8xCMDOZZNf0PS7q2vV1PSrOZIgXs5lgwXVhgjcMEq3GM9hT11Bquj2Vt1H1Xq1/dQ3dpY+jBo8b4SYkkOA7ZBHJz8q61qz/AJllqF+89teDjySQVXuQf5x94rALnpPVbCDUVn06Q2skTz7hgnaMnbxgjnFWrEE5MjZFZNuJu/xXGqwf8q1HVNWs7i46gsrCeQww3IQxJHg7RnPHGayr4WT97TdH6Kv+rL/UJ4RFbrOwWV5C+M9+PTjyRgcVPqKcnaeOAPmKt6rqVnpFnBDbD4VXDL/8rrxcQ2VxOkbzJ6t/LI6eluTa8bZzlc8A8nHajKBRGzc6l55xzJXapK0Y1b+i4hj26gW9QTZ3j8Vcvo17RLDT9PkvdStFjKB/VQHcwyPbnOBWLdNdL3P/ACl5rLGOLT0Y7J5OGP8ApPJPyBrU/wBNNX1HV/0wsbqO4Fqy+sI4Ip95GZWJJ3HzyB94ooY8RNZhCuKyA9qGrdH28cOqzSNJayu8dz2ICg/l2pf6aa9qtxqsmnpqMOo29yEaONO+PnjPNbZdaOUhmuZZvTSYqjOTkLjkjPy7fKqL0Hq8nTN9f6Vpfl33qFo5LxC8akd8qUOflUixAzkGNKOCbEA4mzdGyRjTbZyMx7Bj5YqKe0iQMLjd8j/FJbqG5s5rXUp7qeCCW3u0Xz/z7Dng1W+p+qZNOuJLLQri0kWEbGaU7Qe+Rt+I8c1HquPES1nC3IM6u1DQtB1HUbXQdVsrGKOMXKzXEyIqOMKQCW4P/Zrmr6RaejapdO0E+oXON1vZ3KJG8zHjBWUFtp7kBcGmddyJJv1K3cZGbm0nkQHGVGz2OR9xSNX6E6f6i6UfVNJ6k9WGzuxawJFJJHvfYZMbRjG1MZzyRnnJgXA5klWOALneI3bwjQZdF6h6w1Y2mgadZWcIzFPeyRnygYJj3K53fzBUcr3IrBOr+v8AXutdcn1TV7ySa5k5A7KoONqjwKiOtOq7zqrqS61XUHKNcNlYwcrGvCqPsKigKQKIAAGBUtZzqMpq+7qpWdLQ8d3h7BbcR6aDiP8A0UpfDH1HHgfP3pZs9t/rHycfekSrFDFZyJECtJFcl4cJktzhj2qWGOYtuPPJ+38H7+9fXtFxEhcNz4zE/9k=') center center no-repeat;
+            background-size: cover;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -89,25 +90,25 @@
         }
         
         #loadingText {
-            color: #0f0;
+            color: #cccccc;
             font-size: 24px;
             margin-bottom: 20px;
-            text-shadow: 0 0 10px #0f0;
+            text-shadow: 0 0 10px #cccccc;
             animation: pulse 2s infinite;
         }
         
         #loadingBar {
             width: 300px;
             height: 20px;
-            border: 2px solid #0f0;
+            border: 2px solid #888888;
             background: #000;
             position: relative;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            box-shadow: 0 0 10px rgba(136, 136, 136, 0.5);
         }
         
         #loadingProgress {
             height: 100%;
-            background: linear-gradient(90deg, #0f0, #0a0);
+            background: linear-gradient(90deg, #888888, #666666);
             width: 0%;
             transition: width 0.3s ease;
             box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.2);
@@ -150,7 +151,7 @@
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            color: #0f0;
+            color: #cccccc;
             font-size: 12px;
             opacity: 0.7;
             text-align: center;
