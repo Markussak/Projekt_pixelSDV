@@ -147,8 +147,14 @@ export class GameStateManager {
         this.logger.info('🔧 Initializing game state manager...');
         
         try {
-            // Try to load existing save data
-            await this.loadGameData();
+            // Try to load existing save data, fallback to defaults if none exists
+            try {
+                await this.loadGameData();
+                this.logger.info('Existing save data loaded');
+            } catch (error) {
+                this.logger.info('No existing save data found, creating new game data');
+                this.gameData = this.createDefaultGameData();
+            }
             
             // Setup demo content for FÁZE 1
             this.setupDemoContent();
