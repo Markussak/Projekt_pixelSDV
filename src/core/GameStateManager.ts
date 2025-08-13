@@ -550,6 +550,14 @@ export class GameStateManager {
         const seconds = Math.floor(this.gameData.gameTime % 60);
         renderer.renderText(`TIME: ${minutes}:${seconds.toString().padStart(2, '0')}`, 
             10, 70, { r: 0, g: 192, b: 192 }, 12);
+        
+        // Galaxy info (if available)
+        renderer.renderText(`SYSTEM: ${this.gameData.currentSystem.name}`, 
+            10, 90, { r: 0, g: 255, b: 255 }, 12);
+        
+        // Galaxy exploration progress
+        renderer.renderText(`EXPLORATION: ${(this.gameData.stats.systemsVisited || 0)} systems`, 
+            10, 110, { r: 192, g: 192, b: 192 }, 12);
     }
 
     /**

@@ -11,6 +11,7 @@ import { GameStateManager, GameState } from '@core/GameStateManager';
 import { Platform, PlatformDetector } from '@utils/Platform';
 import { Logger } from '@utils/Logger';
 import { PlayerShip } from '@entities/PlayerShip';
+import { GalaxyManager } from '@procedural/GalaxyManager';
 
 export interface GameConfig {
     targetFPS: number;
@@ -34,6 +35,9 @@ export class Game {
     
     // Game entities
     private playerShip: PlayerShip | null = null;
+    
+    // Galaxy system
+    private galaxyManager: GalaxyManager | null = null;
     
     // Game loop
     private isRunning = false;
@@ -143,6 +147,12 @@ export class Game {
             if (this.config.enableAutoSave) {
                 this.setupAutoSave();
             }
+            
+            // Initialize galaxy manager
+            await this.perfLogger.measureAsync('galaxy-init', async () => {
+                this.galaxyManager = new GalaxyManager();
+                await this.galaxyManager.initialize();
+            });
             
             // Setup demo content
             this.setupDemoContent();
@@ -387,34 +397,99 @@ export class Game {
         this.logger.info('🎮 Setting up demo content...');
         
         try {
-            // Create player ship
+            // Create player ship in current system
+            let shipPosition = { x: 512, y: 384 }; // Default center
+            
+            if (this.galaxyManager) {
+                const currentSystem = this.galaxyManager.getCurrentSystem();
+                if (currentSystem) {
+                    // Position ship in the system
+                    shipPosition = {
+                        x: currentSystem.star.position.x + 100, // Offset from star
+                        y: currentSystem.star.position.y + 100
+                    };
+                }
+            }
+            
             this.playerShip = new PlayerShip(
                 this.physics,
                 this.input,
                 this.audio,
-                { x: 512, y: 384 } // Center of screen
+                shipPosition
             );
             
-            // Create some demo planets with gravity
-            const planet1 = this.physics.createPlanet('demo_planet_1', { x: 300, y: 200 }, 1000000, 50);
-            this.physics.addObject(planet1);
-            this.physics.addGravityWell('demo_planet_1', {
-                position: planet1.position,
-                mass: planet1.mass,
-                radius: 200
-            });
+            // Create planets from current galaxy system
+            const demoPlanets: any[] = [];
             
-            const planet2 = this.physics.createPlanet('demo_planet_2', { x: 700, y: 500 }, 800000, 40);
-            this.physics.addObject(planet2);
-            this.physics.addGravityWell('demo_planet_2', {
-                position: planet2.position,
-                mass: planet2.mass,
-                radius: 180
-            });
+            if (this.galaxyManager) {
+                const currentSystem = this.galaxyManager.getCurrentSystem();
+                if (currentSystem) {
+                    // Add central star
+                    const starObj = this.physics.createPlanet(
+                        currentSystem.star.id, 
+                        { x: 512, y: 384 }, // Center the star on screen
+                        currentSystem.star.mass * 1000000, 
+                        Math.min(currentSystem.star.radius * 20, 80) // Scale for visibility
+                    );
+                    this.physics.addObject(starObj);
+                    this.physics.addGravityWell(currentSystem.star.id, {
+                        position: starObj.position,
+                        mass: starObj.mass,
+                        radius: 300
+                    });
+                    demoPlanets.push(starObj);
+                    
+                    // Add planets
+                    currentSystem.planets.forEach((planet, index) => {
+                        const angle = (index * Math.PI * 2) / currentSystem.planets.length;
+                        const distance = 150 + (planet.orbitDistance * 30); // Scale orbit distance
+                        
+                        const planetPos = {
+                            x: 512 + Math.cos(angle) * distance,
+                            y: 384 + Math.sin(angle) * distance
+                        };
+                        
+                        const planetObj = this.physics.createPlanet(
+                            planet.id,
+                            planetPos,
+                            planet.mass * 100000,
+                            Math.max(planet.radius * 10, 15) // Scale for visibility
+                        );
+                        
+                        this.physics.addObject(planetObj);
+                        demoPlanets.push(planetObj);
+                    });
+                    
+                    this.logger.info(`✅ Generated system: ${currentSystem.name} with ${currentSystem.planets.length} planets`);
+                }
+            }
+            
+            // Fallback demo planets if no galaxy system
+            if (demoPlanets.length === 0) {
+                const planet1 = this.physics.createPlanet('demo_planet_1', { x: 300, y: 200 }, 1000000, 50);
+                const planet2 = this.physics.createPlanet('demo_planet_2', { x: 700, y: 500 }, 800000, 40);
+                
+                this.physics.addObject(planet1);
+                this.physics.addObject(planet2);
+                
+                this.physics.addGravityWell('demo_planet_1', {
+                    position: planet1.position,
+                    mass: planet1.mass,
+                    radius: 200
+                });
+                
+                this.physics.addGravityWell('demo_planet_2', {
+                    position: planet2.position,
+                    mass: planet2.mass,
+                    radius: 180
+                });
+                
+                demoPlanets.push(planet1, planet2);
+            }
             
             // Pass demo entities to state manager for rendering
             this.stateManager.setDemoShip(this.playerShip.getPhysicsObject());
-            this.stateManager.setDemoPlanets([planet1, planet2]);
+            this.stateManager.setDemoPlanets(demoPlanets);
             
             this.logger.info('✅ Demo content setup completed');
             
@@ -501,6 +576,10 @@ export class Game {
         
         if (this.playerShip) {
             this.playerShip.cleanup();
+        }
+        
+        if (this.galaxyManager) {
+            await this.galaxyManager.cleanup();
         }
         
         this.logger.info('✅ Game cleanup completed');
