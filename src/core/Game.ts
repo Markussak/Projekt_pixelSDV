@@ -25,6 +25,8 @@ import { ResearchSystem } from '@rpg/ResearchSystem';
 import { CrewManagement } from '@rpg/CrewManagement';
 import { DiplomacySystem } from '@diplomacy/DiplomacySystem';
 import { AlienAI, AlienSpecies } from '@ai/AlienAI';
+import { ProceduralAudio, SoundType } from '@audio/ProceduralAudio';
+import { PerformanceMonitor } from '@optimization/PerformanceMonitor';
 
 export interface GameConfig {
     targetFPS: number;
@@ -77,6 +79,10 @@ export class Game {
     // AI & Diplomacy systems
     private diplomacySystem: DiplomacySystem | null = null;
     private alienAI: AlienAI | null = null;
+    
+    // Polish systems
+    private proceduralAudio: ProceduralAudio | null = null;
+    private performanceMonitor: PerformanceMonitor | null = null;
     
     // Game loop
     private isRunning = false;
@@ -382,6 +388,46 @@ export class Game {
                 }
             });
             
+            // Initialize polish systems
+            this.proceduralAudio = new ProceduralAudio({
+                onSoundPlayed: (type, config) => {
+                    this.logger.debug(`🔊 Sound played: ${type}`);
+                },
+                onTrackChanged: (trackName) => {
+                    this.logger.info(`🎵 Music track changed: ${trackName}`);
+                },
+                onAudioError: (error) => {
+                    this.logger.error('🔊 Audio error', error);
+                }
+            });
+            
+            this.performanceMonitor = new PerformanceMonitor({
+                onPerformanceUpdate: (metrics) => {
+                    // Update game metrics for audio system
+                    this.proceduralAudio?.setGameMetrics?.({
+                        activeSounds: metrics.activeSounds
+                    });
+                },
+                onThresholdExceeded: (metric, value, threshold) => {
+                    this.logger.warn(`⚠️ Performance threshold exceeded: ${metric} = ${value} (threshold: ${threshold})`);
+                },
+                onOptimizationRecommended: (recommendations) => {
+                    this.logger.info(`🔧 Performance recommendations: ${recommendations.length} suggestions`);
+                },
+                onSettingsChanged: (settings) => {
+                    this.logger.info('⚙️ Performance settings updated');
+                }
+            });
+            
+            // Initialize audio system
+            await this.proceduralAudio.initialize();
+            
+            // Initialize performance monitoring
+            this.performanceMonitor.initialize();
+            
+            // Start ambient space music
+            this.proceduralAudio.startAmbientTrack('deep_space');
+            
             // Initialize combat system with RPG integration
             this.combatManager = new CombatManager(
                 this.itemDatabase,
@@ -675,6 +721,45 @@ export class Game {
                 }
             }
             
+            // Demo Audio & Polish controls
+            if (this.proceduralAudio) {
+                // Play laser sound (press 'O' for demo)
+                if (this.input.isKeyPressed('KeyO')) {
+                    this.proceduralAudio.playRetroSound(SoundType.Laser, 1.0);
+                }
+                
+                // Play explosion sound (press 'P' for demo)
+                if (this.input.isKeyPressed('KeyP')) {
+                    this.proceduralAudio.playRetroSound(SoundType.Explosion, 1.0);
+                }
+                
+                // Cycle ambient tracks (press 'U' for demo)
+                if (this.input.isKeyPressed('KeyU')) {
+                    const tracks = ['deep_space', 'nebula_drift', 'void_silence'];
+                    const currentTrack = this.proceduralAudio.getAudioStats().currentTrack;
+                    const currentIndex = tracks.indexOf(currentTrack || 'deep_space');
+                    const nextTrack = tracks[(currentIndex + 1) % tracks.length];
+                    this.proceduralAudio.startAmbientTrack(nextTrack);
+                }
+            }
+            
+            if (this.performanceMonitor) {
+                // Toggle auto-optimization (press 'Y' for demo)
+                if (this.input.isKeyPressed('KeyY')) {
+                    const settings = this.performanceMonitor.getSettings();
+                    this.performanceMonitor.updateSettings({
+                        autoOptimize: !settings.autoOptimize
+                    });
+                    this.logger.info(`🔧 Auto-optimization: ${!settings.autoOptimize ? 'ON' : 'OFF'}`);
+                }
+                
+                // Get performance summary (press 'T' for demo)
+                if (this.input.isKeyPressed('KeyT')) {
+                    const summary = this.performanceMonitor.getPerformanceSummary();
+                    this.logger.info(`📊 Performance: ${summary.performanceGrade} (${Math.round(summary.averageFPS)} FPS, ${Math.round(summary.averageMemoryUsage)}% memory)`);
+                }
+            }
+            
             // Demo RPG system controls
             if (this.playerProgression) {
                 // Add experience (press 'F' for demo)
@@ -787,6 +872,21 @@ export class Game {
         
         if (this.crewManagement) {
             this.crewManagement.update(deltaTime);
+        }
+        
+        // Update polish systems
+        this.performanceMonitor?.update(deltaTime);
+        
+        // Update performance metrics for monitoring
+        if (this.performanceMonitor) {
+            const audioStats = this.proceduralAudio?.getAudioStats();
+            this.performanceMonitor.setGameMetrics({
+                activeEntities: (this.celestialManager?.getActiveBodies()?.length || 0) + 1, // +1 for player
+                activeSounds: audioStats?.activeSounds || 0,
+                drawCalls: 1, // Simplified for now
+                triangles: 100, // Simplified for now
+                textureMemory: 10 // Simplified for now
+            });
         }
     }
 
