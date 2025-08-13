@@ -23,6 +23,8 @@ import { CombatManager } from '@combat/CombatManager';
 import { PlayerProgression } from '@rpg/PlayerProgression';
 import { ResearchSystem } from '@rpg/ResearchSystem';
 import { CrewManagement } from '@rpg/CrewManagement';
+import { DiplomacySystem } from '@diplomacy/DiplomacySystem';
+import { AlienAI, AlienSpecies } from '@ai/AlienAI';
 
 export interface GameConfig {
     targetFPS: number;
@@ -71,6 +73,10 @@ export class Game {
     private playerProgression: PlayerProgression | null = null;
     private researchSystem: ResearchSystem | null = null;
     private crewManagement: CrewManagement | null = null;
+    
+    // AI & Diplomacy systems
+    private diplomacySystem: DiplomacySystem | null = null;
+    private alienAI: AlienAI | null = null;
     
     // Game loop
     private isRunning = false;
@@ -344,6 +350,38 @@ export class Game {
                 }
             });
             
+            // Initialize diplomacy and alien AI systems
+            this.diplomacySystem = new DiplomacySystem({
+                onFirstContact: (faction) => {
+                    this.logger.info(`🤝 First contact with: ${faction.name}`);
+                },
+                onReputationChanged: (factionId, oldRep, newRep) => {
+                    const change = newRep - oldRep;
+                    this.logger.info(`🤝 Reputation ${change > 0 ? '+' : ''}${change}: ${factionId}`);
+                },
+                onNegotiationStarted: (session) => {
+                    this.logger.info(`💬 Negotiation started with faction`);
+                },
+                onEncounterGenerated: (encounter) => {
+                    this.logger.info(`🎭 Diplomatic encounter: ${encounter.type}`);
+                }
+            });
+            
+            this.alienAI = new AlienAI({
+                onFirstContact: (species, encounter) => {
+                    this.logger.info(`👽 First contact with: ${species}`);
+                },
+                onCommunicationBreakthrough: (species, method) => {
+                    this.logger.info(`📡 Communication breakthrough: ${species} via ${method}`);
+                },
+                onTechnologyDiscovered: (species, technology) => {
+                    this.logger.info(`🔬 Technology discovered from ${species}: ${technology}`);
+                },
+                onCulturalInsight: (species, insight) => {
+                    this.logger.info(`🎭 Cultural insight about ${species}: ${insight}`);
+                }
+            });
+            
             // Initialize combat system with RPG integration
             this.combatManager = new CombatManager(
                 this.itemDatabase,
@@ -587,6 +625,53 @@ export class Game {
                 if (this.input.isKeyPressed('KeyQ')) {
                     this.combatManager.clearCombat();
                     this.logger.info('🧹 Cleared all combat');
+                }
+            }
+            
+            // Demo AI & Diplomacy controls
+            if (this.diplomacySystem) {
+                // Generate random diplomatic encounter (press 'K' for demo)
+                if (this.input.isKeyPressed('KeyK')) {
+                    const playerPos = this.playerShip?.getPosition() || { x: 0, y: 0 };
+                    const encounter = this.diplomacySystem.generateRandomEncounter(playerPos);
+                    if (encounter) {
+                        this.logger.info(`🎭 Generated diplomatic encounter with ${encounter.factionId}`);
+                    }
+                }
+                
+                // Modify faction reputation (press 'L' for demo)
+                if (this.input.isKeyPressed('KeyL')) {
+                    const factions = this.diplomacySystem.getAllFactions();
+                    if (factions.length > 0) {
+                        const randomFaction = factions[Math.floor(Math.random() * factions.length)];
+                        const change = Math.floor(Math.random() * 21) - 10; // -10 to +10
+                        this.diplomacySystem.modifyReputation(randomFaction.id, change, 'Random diplomatic action');
+                    }
+                }
+            }
+            
+            if (this.alienAI) {
+                // Generate alien encounter (press 'M' for demo)
+                if (this.input.isKeyPressed('KeyM')) {
+                    const playerPos = this.playerShip?.getPosition() || { x: 0, y: 0 };
+                    const species = Object.values(AlienSpecies)[Math.floor(Math.random() * Object.values(AlienSpecies).length)];
+                    const encounter = this.alienAI.generateEncounter(species, playerPos, 'routine');
+                    this.logger.info(`👽 Generated alien encounter: ${species}`);
+                }
+                
+                // Simulate alien communication (press 'N' for demo)
+                if (this.input.isKeyPressed('KeyN')) {
+                    const encounters = this.alienAI.getActiveEncounters();
+                    if (encounters.length > 0) {
+                        const encounter = encounters[0];
+                        const response = this.alienAI.processPlayerAction(
+                            encounter.id,
+                            'communicate',
+                            50,
+                            'peaceful_greeting'
+                        );
+                        this.logger.info(`📡 Alien response: ${response.type} - ${response.description}`);
+                    }
                 }
             }
             
