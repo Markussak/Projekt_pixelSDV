@@ -10,6 +10,7 @@ import { AudioEngine } from '@core/AudioEngine';
 import { GameStateManager, GameState } from '@core/GameStateManager';
 import { Platform, PlatformDetector } from '@utils/Platform';
 import { Logger } from '@utils/Logger';
+import { PlayerShip } from '@entities/PlayerShip';
 
 export interface GameConfig {
     targetFPS: number;
@@ -30,6 +31,9 @@ export class Game {
     private physics: SpacePhysics;
     private audio: AudioEngine;
     private stateManager: GameStateManager;
+    
+    // Game entities
+    private playerShip: PlayerShip | null = null;
     
     // Game loop
     private isRunning = false;
@@ -140,6 +144,9 @@ export class Game {
                 this.setupAutoSave();
             }
             
+            // Setup demo content
+            this.setupDemoContent();
+            
             this.logger.info('✅ Game initialization completed successfully');
             
         } catch (error) {
@@ -239,6 +246,23 @@ export class Game {
         
         // Update audio
         this.audio.update(deltaTime);
+        
+        // Update game entities
+        if (this.playerShip && this.stateManager.isGameActive()) {
+            this.playerShip.update(deltaTime);
+            
+            // Handle weapon firing
+            this.playerShip.fireWeapon();
+            
+            // Handle pause input
+            if (this.input.isPausePressed()) {
+                if (this.stateManager.canPause()) {
+                    this.stateManager.setState(GameState.Paused);
+                } else if (this.stateManager.canResume()) {
+                    this.stateManager.setState(GameState.Playing);
+                }
+            }
+        }
     }
 
     /**
@@ -250,6 +274,12 @@ export class Game {
         
         // Render current game state
         this.stateManager.render(this.renderer);
+        
+        // Render game entities
+        if (this.playerShip && this.stateManager.isGameActive()) {
+            // Render thrust particles
+            this.playerShip.renderThrustParticles(this.renderer);
+        }
         
         // Render debug information if enabled
         if (this.config.enableDebug) {
@@ -351,6 +381,49 @@ export class Game {
     }
 
     /**
+     * Setup demo content for FÁZE 1
+     */
+    private setupDemoContent(): void {
+        this.logger.info('🎮 Setting up demo content...');
+        
+        try {
+            // Create player ship
+            this.playerShip = new PlayerShip(
+                this.physics,
+                this.input,
+                this.audio,
+                { x: 512, y: 384 } // Center of screen
+            );
+            
+            // Create some demo planets with gravity
+            const planet1 = this.physics.createPlanet('demo_planet_1', { x: 300, y: 200 }, 1000000, 50);
+            this.physics.addObject(planet1);
+            this.physics.addGravityWell('demo_planet_1', {
+                position: planet1.position,
+                mass: planet1.mass,
+                radius: 200
+            });
+            
+            const planet2 = this.physics.createPlanet('demo_planet_2', { x: 700, y: 500 }, 800000, 40);
+            this.physics.addObject(planet2);
+            this.physics.addGravityWell('demo_planet_2', {
+                position: planet2.position,
+                mass: planet2.mass,
+                radius: 180
+            });
+            
+            // Pass demo entities to state manager for rendering
+            this.stateManager.setDemoShip(this.playerShip.getPhysicsObject());
+            this.stateManager.setDemoPlanets([planet1, planet2]);
+            
+            this.logger.info('✅ Demo content setup completed');
+            
+        } catch (error) {
+            this.logger.error('❌ Failed to setup demo content', error);
+        }
+    }
+
+    /**
      * Handle errors
      */
     handleError(error: any): void {
@@ -424,6 +497,10 @@ export class Game {
         
         if (this.input) {
             this.input.cleanup();
+        }
+        
+        if (this.playerShip) {
+            this.playerShip.cleanup();
         }
         
         this.logger.info('✅ Game cleanup completed');
