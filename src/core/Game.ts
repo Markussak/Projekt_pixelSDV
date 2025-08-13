@@ -16,6 +16,9 @@ import { CockpitStatusBar } from '@ui/CockpitStatusBar';
 import { ShipSection, SystemType } from '@entities/ShipSystems';
 import { CelestialManager } from '@managers/CelestialManager';
 import { SpaceBackground } from '@rendering/SpaceBackground';
+import { ItemDatabase } from '@items/ItemSystem';
+import { InventoryManager } from '@inventory/InventoryManager';
+import { CraftingSystem } from '@crafting/CraftingSystem';
 
 export interface GameConfig {
     targetFPS: number;
@@ -51,6 +54,11 @@ export class Game {
     
     // Background rendering
     private spaceBackground: SpaceBackground | null = null;
+    
+    // Item and inventory systems
+    private itemDatabase: ItemDatabase | null = null;
+    private inventoryManager: InventoryManager | null = null;
+    private craftingSystem: CraftingSystem | null = null;
     
     // Game loop
     private isRunning = false;
@@ -248,6 +256,45 @@ export class Game {
                 nebulaOpacity: 0.2
             });
             
+            // Initialize item systems
+            this.itemDatabase = new ItemDatabase();
+            
+            this.inventoryManager = new InventoryManager({
+                maxSlots: 50,
+                gridWidth: 10,
+                gridHeight: 5,
+                maxWeight: 1000,
+                maxVolume: 500,
+                allowStacking: true
+            }, {
+                onItemAdded: (item, quantity) => {
+                    this.logger.info(`📦 Added ${quantity}x ${item.name} to inventory`);
+                },
+                onItemRemoved: (item, quantity) => {
+                    this.logger.info(`📦 Removed ${quantity}x ${item.name} from inventory`);
+                },
+                onInventoryFull: () => {
+                    this.logger.warn('📦 Inventory is full!');
+                }
+            }, this.itemDatabase);
+            
+            this.craftingSystem = new CraftingSystem(
+                this.itemDatabase,
+                this.inventoryManager,
+                {
+                    onCraftingStarted: (attempt) => {
+                        this.logger.info(`🔧 Started crafting: ${attempt.recipeId}`);
+                    },
+                    onCraftingCompleted: (item, success) => {
+                        if (success) {
+                            this.logger.info(`✅ Successfully crafted ${item.name}`);
+                        } else {
+                            this.logger.warn(`❌ Failed to craft ${item.name}`);
+                        }
+                    }
+                }
+            );
+            
             // Setup demo content
             this.setupDemoContent();
             
@@ -390,6 +437,46 @@ export class Game {
                 this.logger.info(`🌌 Warp state: ${warpState}`);
             }
             
+            // Demo inventory system (press 'I' to toggle inventory)
+            if (this.input.isKeyPressed('KeyI') && this.inventoryManager) {
+                const isVisible = this.inventoryManager.isInventoryVisible();
+                this.inventoryManager.setVisible(!isVisible);
+                this.logger.info(`📦 Inventory ${!isVisible ? 'opened' : 'closed'}`);
+            }
+            
+            // Demo crafting system (press 'C' to toggle crafting)
+            if (this.input.isKeyPressed('KeyC') && this.craftingSystem) {
+                const isVisible = this.craftingSystem.isCraftingVisible();
+                this.craftingSystem.setVisible(!isVisible);
+                if (!isVisible) {
+                    this.craftingSystem.selectStation('basic_fabricator');
+                }
+                this.logger.info(`🔧 Crafting ${!isVisible ? 'opened' : 'closed'}`);
+            }
+            
+            // Demo item generation (press 'R' to add random items)
+            if (this.input.isKeyPressed('KeyR') && this.inventoryManager && this.itemDatabase) {
+                const randomItem = this.itemDatabase.generateRandomItem();
+                if (randomItem) {
+                    const quantity = Math.floor(Math.random() * 5) + 1;
+                    const added = this.inventoryManager.addItem(randomItem, quantity);
+                    if (added) {
+                        this.logger.info(`🎲 Added ${quantity}x ${randomItem.name} (${randomItem.rarity})`);
+                    }
+                }
+            }
+            
+            // Demo auto-crafting (press 'X' to start crafting if possible)
+            if (this.input.isKeyPressed('KeyX') && this.craftingSystem) {
+                // Try to craft an energy cell (simple recipe)
+                const success = this.craftingSystem.startCrafting('craft_energy_cell', 'basic_fabricator');
+                if (success) {
+                    this.logger.info('🔧 Started crafting Energy Cell');
+                } else {
+                    this.logger.warn('🔧 Cannot start crafting - check materials');
+                }
+            }
+            
             // Handle pause input
             if (this.input.isPausePressed()) {
                 if (this.stateManager.canPause()) {
@@ -430,6 +517,11 @@ export class Game {
                 this.spaceBackground.gradualRestore(progress);
             }
         }
+        
+        // Update inventory and crafting systems
+        if (this.craftingSystem) {
+            this.craftingSystem.update(deltaTime);
+        }
     }
 
     /**
@@ -464,6 +556,15 @@ export class Game {
         // Render cockpit status bar
         if (this.cockpitStatusBar) {
             this.cockpitStatusBar.render(this.renderer);
+        }
+        
+        // Render inventory and crafting UIs
+        if (this.inventoryManager && this.inventoryManager.isInventoryVisible()) {
+            this.inventoryManager.render(this.renderer);
+        }
+        
+        if (this.craftingSystem && this.craftingSystem.isCraftingVisible()) {
+            this.craftingSystem.render(this.renderer);
         }
         
         // Render debug information if enabled
@@ -775,6 +876,11 @@ export class Game {
         
         if (this.celestialManager) {
             this.celestialManager.cleanup();
+        }
+        
+        // Cleanup inventory and crafting systems (save state if needed)
+        if (this.inventoryManager) {
+            this.inventoryManager.clearInventory();
         }
         
         this.logger.info('✅ Game cleanup completed');
