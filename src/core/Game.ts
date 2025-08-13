@@ -20,6 +20,9 @@ import { ItemDatabase } from '@items/ItemSystem';
 import { InventoryManager } from '@inventory/InventoryManager';
 import { CraftingSystem } from '@crafting/CraftingSystem';
 import { CombatManager } from '@combat/CombatManager';
+import { PlayerProgression } from '@rpg/PlayerProgression';
+import { ResearchSystem } from '@rpg/ResearchSystem';
+import { CrewManagement } from '@rpg/CrewManagement';
 
 export interface GameConfig {
     targetFPS: number;
@@ -63,6 +66,11 @@ export class Game {
     
     // Combat system
     private combatManager: CombatManager | null = null;
+    
+    // RPG systems
+    private playerProgression: PlayerProgression | null = null;
+    private researchSystem: ResearchSystem | null = null;
+    private crewManagement: CrewManagement | null = null;
     
     // Game loop
     private isRunning = false;
@@ -299,7 +307,44 @@ export class Game {
                 }
             );
             
-            // Initialize combat system
+            // Initialize combat system (will be initialized after RPG systems)
+            this.combatManager = null;
+            
+            // Initialize RPG systems
+            this.playerProgression = new PlayerProgression({
+                onLevelUp: (level, rewards) => {
+                    this.logger.info(`🎉 Level up! Level ${level}`, rewards);
+                },
+                onSkillLevelUp: (skill, level) => {
+                    this.logger.info(`📈 Skill up: ${skill.name} → ${level}`);
+                },
+                onAchievementUnlocked: (achievement) => {
+                    this.logger.info(`🏆 Achievement: ${achievement.name}`);
+                }
+            });
+            
+            this.researchSystem = new ResearchSystem({
+                onTechnologyUnlocked: (tech) => {
+                    this.logger.info(`🔬 Technology unlocked: ${tech.name}`);
+                },
+                onDiscoveryMade: (discovery) => {
+                    this.logger.info(`🔍 Discovery: ${discovery.name}`);
+                }
+            });
+            
+            this.crewManagement = new CrewManagement({
+                onCrewJoined: (crew) => {
+                    this.logger.info(`👤 Crew joined: ${crew.name} (${crew.role})`);
+                },
+                onCrewEvent: (event) => {
+                    this.logger.info(`📰 Crew event: ${event.description}`);
+                },
+                onMoraleAlert: (morale) => {
+                    this.logger.warn(`😟 Low crew morale: ${morale.toFixed(0)}%`);
+                }
+            });
+            
+            // Initialize combat system with RPG integration
             this.combatManager = new CombatManager(
                 this.itemDatabase,
                 this.inventoryManager,
@@ -309,9 +354,22 @@ export class Game {
                     },
                     onEncounterCompleted: (encounter, success) => {
                         this.logger.info(`${success ? '✅' : '❌'} Encounter ${encounter.name} ${success ? 'completed' : 'failed'}`);
+                        // Award experience for completed encounters
+                        if (success && this.playerProgression) {
+                            this.playerProgression.addExperience(encounter.rewards.experience);
+                            this.playerProgression.updateStatistics({ encountersCompleted: 1 });
+                        }
                     },
                     onEnemyDestroyed: (enemyId, rewards) => {
                         this.logger.info(`💰 Enemy destroyed: +${rewards.experience} XP, ${rewards.items.length} items`);
+                        // Award experience and update stats
+                        if (this.playerProgression) {
+                            this.playerProgression.addExperience(rewards.experience);
+                            this.playerProgression.updateStatistics({ enemiesDefeated: 1 });
+                            // Award skill experience based on combat
+                            this.playerProgression.addSkillExperience('weapon_proficiency', 10);
+                            this.playerProgression.addSkillExperience('tactical_combat', 5);
+                        }
                     },
                     onPlayerDamaged: (damage, damageType) => {
                         this.logger.warn(`💥 Player hit: ${damage} ${damageType} damage`);
@@ -532,6 +590,52 @@ export class Game {
                 }
             }
             
+            // Demo RPG system controls
+            if (this.playerProgression) {
+                // Add experience (press 'F' for demo)
+                if (this.input.isKeyPressed('KeyF')) {
+                    this.playerProgression.addExperience(100);
+                    this.logger.info('📈 Added 100 XP');
+                }
+                
+                // Add skill experience (press 'G' for demo)
+                if (this.input.isKeyPressed('KeyG')) {
+                    this.playerProgression.addSkillExperience('weapon_proficiency', 25);
+                    this.logger.info('🔧 Added weapon proficiency XP');
+                }
+            }
+            
+            if (this.researchSystem) {
+                // Start basic research (press 'H' for demo)
+                if (this.input.isKeyPressed('KeyH')) {
+                    const started = this.researchSystem.startResearch('basic_sensors', 'basic_lab', ['dr_smith']);
+                    if (started) {
+                        this.logger.info('🔬 Started basic sensors research');
+                    } else {
+                        this.logger.warn('🔬 Cannot start research');
+                    }
+                }
+            }
+            
+            if (this.crewManagement) {
+                // Auto-assign crew (press 'J' for demo)
+                if (this.input.isKeyPressed('KeyJ')) {
+                    const crew = this.crewManagement.getAllCrew();
+                    if (crew.length > 0) {
+                        const randomCrew = crew[Math.floor(Math.random() * crew.length)];
+                        const stations = this.crewManagement.getAllStations();
+                        const availableStation = stations.find(s => s.assignedCrew.length < s.maxCrew);
+                        
+                        if (availableStation) {
+                            const assigned = this.crewManagement.assignCrewToStation(randomCrew.id, availableStation.stationId);
+                            if (assigned) {
+                                this.logger.info(`👥 Assigned ${randomCrew.name} to ${availableStation.stationId}`);
+                            }
+                        }
+                    }
+                }
+            }
+            
             // Handle pause input
             if (this.input.isPausePressed()) {
                 if (this.stateManager.canPause()) {
@@ -589,6 +693,15 @@ export class Game {
                 100 // Max hull
             );
             this.combatManager.update(deltaTime);
+        }
+        
+        // Update RPG systems
+        if (this.researchSystem) {
+            this.researchSystem.update(deltaTime);
+        }
+        
+        if (this.crewManagement) {
+            this.crewManagement.update(deltaTime);
         }
     }
 
