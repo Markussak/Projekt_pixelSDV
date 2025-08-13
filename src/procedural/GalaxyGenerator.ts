@@ -405,7 +405,7 @@ export class GalaxyGenerator {
             [StarType.M]: 3000
         };
         
-        const baseTemp = baseTemps[type] || 5500;
+        const baseTemp = (baseTemps as any)[type] || 5500;
         return baseTemp * this.random.range(0.9, 1.1);
     }
 

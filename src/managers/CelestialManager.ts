@@ -35,7 +35,7 @@ export class CelestialManager {
     
     // Interaction state
     private nearbyBodies: CelestialBody[] = [];
-    private currentInteraction: { body: CelestialBody, zone: InteractionZone } | null = null;
+    private currentInteraction: { body: CelestialBody; zone: InteractionZone } | null = null;
     
     // Performance tracking
     private lastUpdateTime: number = 0;
@@ -191,7 +191,8 @@ export class CelestialManager {
      */
     private getPlanetColor(planetData: PlanetData): { r: number, g: number, b: number } {
         // Dark, muted planet colors based on surface type and planet type
-        switch (planetData.surfaceType) {
+        const surfaceType = planetData.surfaceType as string;
+        switch (surfaceType) {
             case 'Rocky': return { r: 32, g: 24, b: 16 };
             case 'Desert': return { r: 48, g: 32, b: 16 };
             case 'Ocean': return { r: 8, g: 16, b: 32 };
@@ -292,7 +293,7 @@ export class CelestialManager {
     private updateInteractions(shipPosition: Vector2, input: InputManager): void {
         // Find nearby bodies
         this.nearbyBodies = [];
-        let closestInteraction: { body: CelestialBody, zone: InteractionZone } | null = null;
+        let closestInteraction: { body: CelestialBody; zone: InteractionZone } | null = null;
         let closestDistance = Infinity;
         
         this.bodies.forEach(body => {
@@ -310,17 +311,18 @@ export class CelestialManager {
             }
         });
         
-        // Handle interaction changes
+                // Handle interaction changes
         if (closestInteraction && closestInteraction !== this.currentInteraction) {
             // New interaction
             this.currentInteraction = closestInteraction;
+            const interaction = closestInteraction as { body: CelestialBody; zone: InteractionZone };
             this.interactionPanel.showInteraction(
-                closestInteraction.body, 
-                closestInteraction.zone, 
+                interaction.body,
+                interaction.zone,
                 shipPosition
             );
             
-            this.logger.debug(`🎯 New interaction: ${closestInteraction.body.name} (${closestInteraction.zone.type})`);
+            this.logger.debug(`🎯 New interaction: ${interaction.body.name} (${interaction.zone.type})`);
             
         } else if (!closestInteraction && this.currentInteraction) {
             // Lost interaction
@@ -474,6 +476,13 @@ export class CelestialManager {
             default:
                 return false;
         }
+    }
+
+    /**
+     * Get all active celestial bodies
+     */
+    getActiveBodies(): CelestialBody[] {
+        return Array.from(this.bodies.values());
     }
 
     /**

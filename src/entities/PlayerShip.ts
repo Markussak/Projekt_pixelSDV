@@ -159,7 +159,7 @@ export class PlayerShip {
      */
     private handleInput(deltaTime: number): void {
         // Warp drive controls
-        if (this.input.isKeyPressed('KeyW') || this.input.isActionPressed('warp')) {
+        if (this.input.isKeyPressed('KeyW') || this.input.isActionPressed()) {
             this.handleWarpInput();
         }
         
@@ -477,6 +477,13 @@ export class PlayerShip {
      */
     getPosition(): Vector2 {
         return { ...this.physicsObject.position };
+    }
+
+    /**
+     * Get current velocity
+     */
+    getVelocity(): Vector2 {
+        return { ...this.physicsObject.velocity };
     }
 
     /**

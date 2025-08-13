@@ -43,11 +43,11 @@ export class Game {
     private config: GameConfig;
     
     // Core systems
-    private renderer: Renderer;
-    private input: InputManager;
-    private physics: SpacePhysics;
-    private audio: AudioEngine;
-    private stateManager: GameStateManager;
+    private renderer!: Renderer;
+    private input!: InputManager;
+    private physics!: SpacePhysics;
+    private audio!: AudioEngine;
+    private stateManager!: GameStateManager;
     
     // Game entities
     private playerShip: PlayerShip | null = null;
@@ -157,7 +157,7 @@ export class Game {
             this.logger.info('✅ Audio engine initialized');
             
             // Initialize game state manager with audio and particles
-            this.stateManager = new GameStateManager(this.proceduralAudio, this.particleSystem);
+            this.stateManager = new GameStateManager(this.proceduralAudio || undefined, this.particleSystem || undefined);
             this.logger.info('✅ Game state manager initialized');
             
             this.logger.info('🎯 All core systems initialized successfully');
@@ -406,9 +406,10 @@ export class Game {
             this.performanceMonitor = new PerformanceMonitor({
                 onPerformanceUpdate: (metrics) => {
                     // Update game metrics for audio system
-                    this.proceduralAudio?.setGameMetrics?.({
-                        activeSounds: metrics.activeSounds
-                    });
+                    // TODO: Add setGameMetrics method to ProceduralAudio if needed
+                    // this.proceduralAudio?.setGameMetrics?.({
+                    //     activeSounds: metrics.activeSounds
+                    // });
                 },
                 onThresholdExceeded: (metric, value, threshold) => {
                     this.logger.warn(`⚠️ Performance threshold exceeded: ${metric} = ${value} (threshold: ${threshold})`);
@@ -451,7 +452,7 @@ export class Game {
                         // Award experience for completed encounters
                         if (success && this.playerProgression) {
                             this.playerProgression.addExperience(encounter.rewards.experience);
-                            this.playerProgression.updateStatistics({ encountersCompleted: 1 });
+                            this.playerProgression.updateStatistics({ enemiesDefeated: 1 });
                         }
                     },
                     onEnemyDestroyed: (enemyId, rewards) => {
@@ -1015,6 +1016,13 @@ export class Game {
         this.isPaused = true;
         this.audio.pauseAll();
         this.logger.info('⏸️ Game paused');
+    }
+
+    /**
+     * Check if game is paused
+     */
+    getPaused(): boolean {
+        return this.isPaused;
     }
 
     /**

@@ -117,7 +117,7 @@ export interface ProgressionEvents {
 }
 
 export class PlayerProgression {
-    private character: CharacterSheet;
+    private character!: CharacterSheet;
     private events: ProgressionEvents;
     
     // Experience tables

@@ -122,7 +122,7 @@ export class ProceduralAudio {
     // Ambient music system
     private currentTrack: string | null = null;
     private ambientLayers: Map<string, {
-        oscillator: OscillatorNode;
+        oscillator: AudioScheduledSourceNode;
         gain: GainNode;
         filter?: BiquadFilterNode;
         panner: StereoPannerNode;

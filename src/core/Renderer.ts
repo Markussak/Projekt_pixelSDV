@@ -47,8 +47,8 @@ export class Renderer {
     private colorPalette: Color[] = [];
     
     // Render targets
-    private backBuffer: ImageData;
-    private frontBuffer: ImageData;
+    private backBuffer!: ImageData;
+    private frontBuffer!: ImageData;
     
     // Performance tracking
     private renderStats = {
@@ -210,7 +210,7 @@ export class Renderer {
      */
     private initializeWebGL(): void {
         try {
-            this.gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
+            this.gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl') as WebGLRenderingContext;
             
             if (this.gl) {
                 this.logger.info('✅ WebGL context initialized for shader effects');
@@ -645,6 +645,16 @@ export class Renderer {
     getRenderStats() {
         return { ...this.renderStats };
     }
+
+    /**
+     * Draw a filled rectangle
+     */
+    drawRect(x: number, y: number, width: number, height: number, color: Color): void {
+        this.ctx.fillStyle = this.colorToHex(color);
+        this.ctx.fillRect(x, y, width, height);
+    }
+
+
 
     /**
      * Cleanup resources

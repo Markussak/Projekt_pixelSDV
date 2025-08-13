@@ -240,7 +240,7 @@ if (import.meta.env.DEV) {
                 case 'p':
                     // Toggle pause
                     event.preventDefault();
-                    if (game.isPaused()) {
+                    if (game.getPaused()) {
                         game.resume();
                     } else {
                         game.pause();

@@ -216,7 +216,7 @@ export class GalaxyManager {
         if (!this.explorationData.currentSystemId) return;
         
         // Get current system
-        this.currentSystem = this.generator.getStarSystem(this.explorationData.currentSystemId);
+        this.currentSystem = this.generator.getStarSystem(this.explorationData.currentSystemId) || null;
         if (!this.currentSystem) {
             this.logger.error('Current system not found');
             return;

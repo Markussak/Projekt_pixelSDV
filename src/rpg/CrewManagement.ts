@@ -483,7 +483,7 @@ export class CrewManagement {
             'Andorian': ['Andoria', 'Andorian Outpost', 'Ice Station Beta']
         };
         
-        const speciesWorlds = homeworlds[species] || homeworlds['Human'];
+        const speciesWorlds = (homeworlds as any)[species] || homeworlds['Human'];
         return speciesWorlds[Math.floor(Math.random() * speciesWorlds.length)];
     }
 
