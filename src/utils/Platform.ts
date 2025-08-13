@@ -271,7 +271,7 @@ export class PlatformDetector {
      * Check if platform supports specific feature
      */
     static supports(feature: keyof PlatformFeatures): boolean {
-        return this.getFeatures()[feature];
+        return Boolean(this.getFeatures()[feature]);
     }
 
     /**

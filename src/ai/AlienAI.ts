@@ -957,7 +957,7 @@ export class AlienAI {
             'unknown_entities': action.type === 'scan' || action.type === 'probe'
         };
         
-        return matches[trigger] || false;
+        return (matches as any)[trigger] || false;
     }
 
     /**
@@ -972,7 +972,7 @@ export class AlienAI {
             'mutual_benefit': action.type === 'gift' || action.type === 'demonstrate'
         };
         
-        return matches[factor] || false;
+        return (matches as any)[factor] || false;
     }
 
     /**

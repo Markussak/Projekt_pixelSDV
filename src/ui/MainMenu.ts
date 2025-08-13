@@ -64,6 +64,7 @@ export interface GameSettings {
     sfxVolume: number;
     
     // Gameplay settings
+    difficulty: 'easy' | 'normal' | 'hard';
     mouseSensitivity: number;
     showFPS: boolean;
     autoSave: boolean;
@@ -968,6 +969,7 @@ export class MainMenu {
             masterVolume: 0.7,
             musicVolume: 0.5,
             sfxVolume: 0.8,
+            difficulty: 'normal' as const,
             mouseSensitivity: 1.0,
             showFPS: false,
             autoSave: true,

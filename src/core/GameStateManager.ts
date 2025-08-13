@@ -216,12 +216,12 @@ export class GameStateManager {
      * Setup state transitions
      */
     private setupStateTransitions(): void {
-        // Loading → Menu
-        this.addTransition(GameState.Loading, GameState.Menu);
+        // Loading → MainMenu
+        this.addTransition(GameState.Loading, GameState.MainMenu);
         
-        // Menu ↔ Playing
-        this.addTransition(GameState.Menu, GameState.Playing);
-        this.addTransition(GameState.Playing, GameState.Menu);
+        // MainMenu ↔ Playing
+        this.addTransition(GameState.MainMenu, GameState.Playing);
+        this.addTransition(GameState.Playing, GameState.MainMenu);
         
         // Playing ↔ Paused
         this.addTransition(GameState.Playing, GameState.Paused);
@@ -241,7 +241,7 @@ export class GameStateManager {
         
         // Error state
         this.addTransition(GameState.Playing, GameState.Error);
-        this.addTransition(GameState.Error, GameState.Menu);
+        this.addTransition(GameState.Error, GameState.MainMenu);
         
         this.logger.debug('State transitions configured');
     }
@@ -338,7 +338,7 @@ export class GameStateManager {
                 this.pauseGameTimeTracking();
                 break;
                 
-            case GameState.Menu:
+            case GameState.MainMenu:
                 // Auto-save when returning to menu
                 await this.save();
                 break;
@@ -772,9 +772,8 @@ export class GameStateManager {
         this.gameData.settings = {
             masterVolume: settings.masterVolume,
             musicVolume: settings.musicVolume,
-            effectsVolume: settings.sfxVolume,
-            renderScale: settings.renderScale,
-            showFPS: settings.showFPS
+            sfxVolume: settings.sfxVolume,
+            difficulty: settings.difficulty || 'normal'
         };
         
         // Save settings
@@ -785,11 +784,11 @@ export class GameStateManager {
         }
     }
     
-    private handleExit(): void {
+    private async handleExit(): Promise<void> {
         this.logger.info('👋 Exiting game');
         
         // Save current game state
-        this.saveGameData();
+        await this.save();
         
         // Close game or minimize window
         if ('close' in window) {
@@ -845,7 +844,7 @@ export class GameStateManager {
 
 
     isInMenu(): boolean {
-        return this.currentState === GameState.Menu;
+        return this.currentState === GameState.MainMenu;
     }
 
     /**
