@@ -1098,7 +1098,7 @@ export class Game {
                     // Add central star
                     const starObj = this.physics.createPlanet(
                         currentSystem.star.id, 
-                        { x: 512, y: 384 }, // Center the star on screen
+                        { x: 720, y: 450 }, // Center the star on screen
                         currentSystem.star.mass * 1000000, 
                         Math.min(currentSystem.star.radius * 20, 80) // Scale for visibility
                     );
@@ -1116,8 +1116,8 @@ export class Game {
                         const distance = 150 + (planet.orbitDistance * 30); // Scale orbit distance
                         
                         const planetPos = {
-                            x: 512 + Math.cos(angle) * distance,
-                            y: 384 + Math.sin(angle) * distance
+                            x: 720 + Math.cos(angle) * distance,
+                            y: 450 + Math.sin(angle) * distance
                         };
                         
                         const planetObj = this.physics.createPlanet(
@@ -1141,7 +1141,7 @@ export class Game {
                 if (currentSystem) {
                     this.celestialManager.loadSystem({
                         systemData: currentSystem,
-                        cameraPosition: { x: 512, y: 384 }
+                        cameraPosition: { x: 720, y: 450 }
                     });
                     
                     // Discover all bodies for demo
@@ -1153,8 +1153,8 @@ export class Game {
 
             // Fallback demo planets if no galaxy system
             if (demoPlanets.length === 0) {
-                const planet1 = this.physics.createPlanet('demo_planet_1', { x: 300, y: 200 }, 1000000, 50);
-                const planet2 = this.physics.createPlanet('demo_planet_2', { x: 700, y: 500 }, 800000, 40);
+                const planet1 = this.physics.createPlanet('demo_planet_1', { x: 420, y: 300 }, 1000000, 50);
+                const planet2 = this.physics.createPlanet('demo_planet_2', { x: 1020, y: 600 }, 800000, 40);
 
                 this.physics.addObject(planet1);
                 this.physics.addObject(planet2);

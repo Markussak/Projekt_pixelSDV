@@ -46,7 +46,7 @@
             background: radial-gradient(circle at center, #001122 0%, #000000 100%);
         }
         
-        /* Main game canvas */
+        /* Main game canvas - increased resolution */
         #gameCanvas {
             border: 2px solid #888888;
             background: #000;
@@ -56,6 +56,8 @@
             box-shadow: 
                 inset 0 0 50px rgba(136, 136, 136, 0.1),
                 0 0 20px rgba(136, 136, 136, 0.3);
+            max-width: 95vw;
+            max-height: 95vh;
         }
         
         /* CRT scanline effect */
@@ -75,77 +77,12 @@
             pointer-events: none;
         }
         
-        /* Loading screen */
-        #loadingScreen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000 url('data:image/jpeg;base64,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') center center no-repeat;
-            background-size: cover;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            transition: opacity 0.5s ease-out;
-        }
-        
-        #loadingText {
-            color: #cccccc;
-            font-size: 24px;
-            margin-bottom: 20px;
-            text-shadow: 0 0 10px #cccccc;
-            animation: pulse 2s infinite;
-        }
-        
-        #loadingBar {
-            width: 300px;
-            height: 20px;
-            border: 2px solid #888888;
-            background: #000;
-            position: relative;
-            box-shadow: 0 0 10px rgba(136, 136, 136, 0.5);
-        }
-        
-        #loadingProgress {
-            height: 100%;
-            background: linear-gradient(90deg, #888888, #666666);
-            width: 0%;
-            transition: width 0.3s ease;
-            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.2);
-        }
-        
-        /* Animations */
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        @keyframes flicker {
-            0%, 98%, 100% { opacity: 1; }
-            99% { opacity: 0.98; }
-        }
-        
-        /* Subtle flicker only on game canvas, not the whole page */
-        #gameCanvas {
-            animation: flicker 0.15s infinite linear alternate;
-        }
-        
         /* Mobile responsiveness */
         @media (max-width: 768px) {
             #gameCanvas {
                 border-width: 1px;
-            }
-            
-            #loadingText {
-                font-size: 18px;
-            }
-            
-            #loadingBar {
-                width: 250px;
-                height: 15px;
+                max-width: 98vw;
+                max-height: 98vh;
             }
         }
         
@@ -160,29 +97,17 @@
             opacity: 0.7;
             text-align: center;
         }
-        
-        /* Hidden class for loading screen */
-        .hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
     </style>
 </head>
 <body>
     <div id="gameContainer">
-        <!-- Loading Screen -->
-        <div id="loadingScreen">
-            <div id="loadingText">INITIALIZING SPACE EXPLORER 16-BIT...</div>
-            <div id="loadingBar">
-                <div id="loadingProgress"></div>
-            </div>
-            <div class="touch-hint">
-                Mobile: Touch to control ship | Desktop: WASD/Arrow keys
-            </div>
-        </div>
+        <!-- Main Game Canvas - increased resolution to 1440x900 -->
+        <canvas id="gameCanvas" width="1440" height="900"></canvas>
         
-        <!-- Main Game Canvas -->
-        <canvas id="gameCanvas" width="1024" height="768"></canvas>
+        <!-- Touch controls hint for mobile -->
+        <div class="touch-hint">
+            Mobile: Touch to control | Desktop: WASD/Arrow keys to move, Mouse to aim
+        </div>
     </div>
     
     <!-- Game Script -->

@@ -175,7 +175,7 @@ export class GameStateManager {
         return {
             playerShip: {
                 id: 'player_ship',
-                position: { x: 512, y: 384 }, // Center of 1024x768 screen
+                position: { x: 720, y: 450 }, // Center of 1440x900 screen
                 velocity: { x: 0, y: 0 },
                 health: 100,
                 fuel: 1000,
@@ -459,8 +459,8 @@ export class GameStateManager {
      * Render loading state
      */
     private renderLoadingState(renderer: Renderer): void {
-        const centerX = 512;
-        const centerY = 384;
+        const centerX = 720;
+        const centerY = 450;
         
         renderer.renderText('INITIALIZING SPACE EXPLORER...', centerX - 150, centerY - 50, 
             { r: 192, g: 192, b: 192 }, 16);
@@ -475,8 +475,8 @@ export class GameStateManager {
      * Render menu state
      */
     private renderMenuState(renderer: Renderer): void {
-        const centerX = 512;
-        const centerY = 384;
+        const centerX = 720;
+        const centerY = 450;
         
         // Render background image (Image 3)
         this.renderMenuBackground(renderer);
@@ -508,23 +508,44 @@ export class GameStateManager {
      * Render playing state
      */
     private renderPlayingState(renderer: Renderer): void {
-        // Render space background
-        this.renderSpaceBackground(renderer);
+        // Render enhanced space background
+        this.renderEnhancedSpaceBackground(renderer);
         
-        // Render demo ship if available
-        if (this.demoShip) {
-            const shipSprite = renderer.generateShipSprite('player', 32);
-            renderer.drawSprite(shipSprite, this.demoShip.position.x - 16, this.demoShip.position.y - 16);
-        }
-        
-        // Render demo planets
-        this.demoPlanets.forEach(planet => {
+        // Render demo planets with more detail
+        this.demoPlanets.forEach((planet, index) => {
+            const planetColors = [
+                { r: 220, g: 100, b: 50 }, // Mars-like
+                { r: 50, g: 150, b: 220 }, // Earth-like
+                { r: 180, g: 180, b: 100 }, // Desert planet
+                { r: 100, g: 200, b: 100 }  // Forest planet
+            ];
+            const color = planetColors[index % planetColors.length];
+            
+            // Planet with atmosphere
+            renderer.drawCircle(planet.position.x, planet.position.y, planet.radius + 5, 
+                { r: color.r / 3, g: color.g / 3, b: color.b / 3 }, true);
             renderer.drawCircle(planet.position.x, planet.position.y, planet.radius, 
-                { r: 64, g: 128, b: 192 }, true);
+                color, true);
+                
+            // Add surface details
+            const detailSize = planet.radius / 4;
+            renderer.drawCircle(planet.position.x - detailSize, planet.position.y - detailSize, detailSize, 
+                { r: color.r * 0.7, g: color.g * 0.7, b: color.b * 0.7 }, true);
         });
         
-        // Render basic HUD
-        this.renderBasicHUD(renderer);
+        // Render enhanced demo ship if available
+        if (this.demoShip) {
+            const shipSize = 48; // Larger ship
+            const shipSprite = renderer.generateShipSprite('player', shipSize);
+            renderer.drawSprite(shipSprite, this.demoShip.position.x - shipSize/2, this.demoShip.position.y - shipSize/2);
+            
+            // Add engine glow
+            renderer.drawCircle(this.demoShip.position.x, this.demoShip.position.y + shipSize/2, 8, 
+                { r: 0, g: 150, b: 255 }, true);
+        }
+        
+        // Render enhanced HUD
+        this.renderEnhancedHUD(renderer);
     }
 
     /**
@@ -535,8 +556,8 @@ export class GameStateManager {
         this.renderPlayingState(renderer);
         
         // Overlay pause menu
-        const centerX = 512;
-        const centerY = 384;
+        const centerX = 720;
+        const centerY = 450;
         
         // Semi-transparent background
         renderer.fillRect(centerX - 100, centerY - 50, 200, 100, { r: 0, g: 0, b: 0, a: 128 });
@@ -553,11 +574,11 @@ export class GameStateManager {
      * Render error state
      */
     private renderErrorState(renderer: Renderer): void {
-        const centerX = 512;
-        const centerY = 384;
+        const centerX = 720;
+        const centerY = 450;
         
         // Error background
-        renderer.fillRect(0, 0, 1024, 768, { r: 64, g: 0, b: 0 });
+        renderer.fillRect(0, 0, 1440, 900, { r: 64, g: 0, b: 0 });
         
         // Error message
         renderer.renderText('SYSTEM ERROR', centerX - 60, centerY - 50, 
@@ -574,8 +595,8 @@ export class GameStateManager {
      * Render default state
      */
     private renderDefaultState(renderer: Renderer): void {
-        const centerX = 512;
-        const centerY = 384;
+        const centerX = 720;
+        const centerY = 450;
         
         renderer.renderText(`UNKNOWN STATE: ${this.currentState}`, centerX - 100, centerY, 
             { r: 255, g: 0, b: 255 }, 16);
@@ -586,9 +607,9 @@ export class GameStateManager {
      */
     private renderSpaceBackground(renderer: Renderer): void {
         // Simple star field
-        for (let i = 0; i < 100; i++) {
-            const x = (i * 73) % 1024; // Pseudo-random distribution
-            const y = (i * 149) % 768;
+        for (let i = 0; i < 150; i++) {
+            const x = (i * 73) % 1440; // Pseudo-random distribution for 1440x900
+            const y = (i * 149) % 900;
             const brightness = (i % 3) + 1;
             const color = { 
                 r: brightness * 64, 
@@ -597,6 +618,59 @@ export class GameStateManager {
             };
             
             renderer.setPixel(x, y, color);
+        }
+    }
+
+    /**
+     * Render enhanced space background
+     */
+    private renderEnhancedSpaceBackground(renderer: Renderer): void {
+        // Enhanced star field with multiple layers
+        for (let i = 0; i < 400; i++) {
+            const x = (i * 73) % 1440;
+            const y = (i * 149) % 900;
+            const brightness = (i % 4) + 1;
+            const size = brightness > 2 ? 2 : 1;
+            
+            const color = { 
+                r: brightness * 48 + Math.floor(Math.random() * 32), 
+                g: brightness * 48 + Math.floor(Math.random() * 32), 
+                b: brightness * 72 + Math.floor(Math.random() * 48)
+            };
+            
+            if (size === 1) {
+                renderer.setPixel(x, y, color);
+            } else {
+                renderer.drawCircle(x, y, size, color, true);
+            }
+        }
+        
+        // Add nebula-like background effects
+        for (let i = 0; i < 10; i++) {
+            const x = (i * 144) % 1440;
+            const y = (i * 90) % 900;
+            const size = 50 + (i % 30);
+            const color = {
+                r: 20 + (i % 10),
+                g: 10 + (i % 15),
+                b: 40 + (i % 20)
+            };
+            
+            // Render subtle nebula patches
+            for (let j = 0; j < size; j += 5) {
+                const angle = (j / size) * Math.PI * 2;
+                const radius = size * 0.6;
+                const px = x + Math.cos(angle) * radius;
+                const py = y + Math.sin(angle) * radius;
+                
+                if (px >= 0 && px < 1440 && py >= 0 && py < 900) {
+                    renderer.setPixel(Math.floor(px), Math.floor(py), {
+                        r: color.r * 0.3,
+                        g: color.g * 0.3, 
+                        b: color.b * 0.3
+                    });
+                }
+            }
         }
     }
 
@@ -695,6 +769,63 @@ export class GameStateManager {
         // Galaxy exploration progress
         renderer.renderText(`EXPLORATION: ${(this.gameData.stats.systemsVisited || 0)} systems`, 
             10, 110, { r: 192, g: 192, b: 192 }, 12);
+    }
+
+    /**
+     * Render enhanced HUD with better visuals
+     */
+    private renderEnhancedHUD(renderer: Renderer): void {
+        // HUD background panel
+        renderer.fillRect(10, 10, 280, 140, { r: 0, g: 0, b: 0, a: 180 });
+        renderer.drawRect(10, 10, 280, 140, { r: 0, g: 255, b: 255 }, false);
+        
+        // Ship status with bars
+        const health = this.gameData.playerShip.health;
+        const fuel = this.gameData.playerShip.fuel;
+        
+        // Health bar
+        renderer.renderText('INTEGRITA:', 20, 25, { r: 200, g: 200, b: 200 }, 12);
+        renderer.fillRect(100, 25, 100, 12, { r: 50, g: 50, b: 50 });
+        renderer.fillRect(100, 25, health, 12, 
+            health > 70 ? { r: 0, g: 200, b: 0 } : 
+            health > 30 ? { r: 200, g: 200, b: 0 } : { r: 200, g: 0, b: 0 });
+        renderer.renderText(`${health.toFixed(0)}%`, 210, 25, { r: 255, g: 255, b: 255 }, 12);
+        
+        // Fuel bar
+        renderer.renderText('PALIVO:', 20, 45, { r: 200, g: 200, b: 200 }, 12);
+        const fuelPercent = Math.min(100, (fuel / 1000) * 100);
+        renderer.fillRect(100, 45, 100, 12, { r: 50, g: 50, b: 50 });
+        renderer.fillRect(100, 45, fuelPercent, 12, 
+            fuelPercent > 50 ? { r: 0, g: 150, b: 255 } : { r: 255, g: 100, b: 0 });
+        renderer.renderText(`${fuel.toFixed(0)}`, 210, 45, { r: 255, g: 255, b: 255 }, 12);
+        
+        // Resources
+        renderer.renderText(`KREDITY: ${this.gameData.playerShip.resources.get('credits') || 0}`, 
+            20, 70, { r: 255, g: 255, b: 100 }, 12);
+        
+        // Location info
+        renderer.renderText(`SYSTÉM: ${this.gameData.currentSystem.name}`, 
+            20, 90, { r: 100, g: 255, b: 255 }, 12);
+            
+        // Game time
+        const minutes = Math.floor(this.gameData.gameTime / 60);
+        const seconds = Math.floor(this.gameData.gameTime % 60);
+        renderer.renderText(`ČAS: ${minutes}:${seconds.toString().padStart(2, '0')}`, 
+            20, 110, { r: 150, g: 200, b: 255 }, 12);
+            
+        // Position indicator (top right)
+        const shipPos = this.gameData.playerShip.position;
+        renderer.renderText(`POS: ${Math.floor(shipPos.x)}, ${Math.floor(shipPos.y)}`, 
+            1290, 20, { r: 150, g: 150, b: 150 }, 10);
+            
+        // Control hints (bottom of screen)
+        const hints = [
+            'WASD - Pohyb | MEZERNÍK - Brždění | ESC - Menu',
+            'P - Skenovat planetu | E - Interakce'
+        ];
+        hints.forEach((hint, index) => {
+            renderer.renderText(hint, 720, 850 + index * 20, { r: 100, g: 100, b: 100 }, 10);
+        });
     }
 
     /**
