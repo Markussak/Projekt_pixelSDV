@@ -564,37 +564,148 @@ export class GameStateManager {
         // Render enhanced space background
         this.renderEnhancedSpaceBackground(renderer);
         
-        // Render demo planets with more detail
+        // Render demo planets with detailed 16-bit textures
         this.demoPlanets.forEach((planet, index) => {
             const planetColors = [
-                { r: 220, g: 100, b: 50 }, // Mars-like
-                { r: 50, g: 150, b: 220 }, // Earth-like
-                { r: 180, g: 180, b: 100 }, // Desert planet
-                { r: 100, g: 200, b: 100 }  // Forest planet
+                { r: 205, g: 85, b: 45 }, // Mars-like (rusty red)
+                { r: 45, g: 120, b: 200 }, // Earth-like (ocean blue)
+                { r: 180, g: 160, b: 85 }, // Desert planet (sandy)
+                { r: 85, g: 180, b: 85 }  // Forest planet (green)
             ];
-            const color = planetColors[index % planetColors.length];
+            const baseColor = planetColors[index % planetColors.length];
+            const planetRadius = planet.radius;
+            const centerX = planet.position.x;
+            const centerY = planet.position.y;
             
-            // Planet with atmosphere
-            renderer.drawCircle(planet.position.x, planet.position.y, planet.radius + 5, 
-                { r: color.r / 3, g: color.g / 3, b: color.b / 3 }, true);
-            renderer.drawCircle(planet.position.x, planet.position.y, planet.radius, 
-                color, true);
-                
-            // Add surface details
-            const detailSize = planet.radius / 4;
-            renderer.drawCircle(planet.position.x - detailSize, planet.position.y - detailSize, detailSize, 
-                { r: color.r * 0.7, g: color.g * 0.7, b: color.b * 0.7 }, true);
+            // Atmospheric glow (outermost layer)
+            const atmosphereSize = planetRadius + 8;
+            for (let i = 0; i < 3; i++) {
+                const glowRadius = atmosphereSize - i * 2;
+                const glowOpacity = (3 - i) * 0.15;
+                renderer.drawCircle(centerX, centerY, glowRadius, 
+                    { r: baseColor.r * glowOpacity, g: baseColor.g * glowOpacity, b: baseColor.b * glowOpacity }, true);
+            }
+            
+            // Main planet body with gradient shading
+            for (let r = planetRadius; r > 0; r -= 2) {
+                const shadeFactor = 0.4 + (r / planetRadius) * 0.6; // Gradient from dark to light
+                const shadeColor = {
+                    r: Math.floor(baseColor.r * shadeFactor),
+                    g: Math.floor(baseColor.g * shadeFactor),
+                    b: Math.floor(baseColor.b * shadeFactor)
+                };
+                renderer.drawCircle(centerX, centerY, r, shadeColor, true);
+            }
+            
+            // Surface features based on planet type
+            const surfaceDetails = [];
+            switch (index % 4) {
+                case 0: // Mars-like - craters and polar caps
+                    surfaceDetails.push(
+                        { x: centerX - planetRadius * 0.3, y: centerY - planetRadius * 0.4, size: planetRadius * 0.2, color: { r: 120, g: 60, b: 30 } },
+                        { x: centerX + planetRadius * 0.4, y: centerY + planetRadius * 0.3, size: planetRadius * 0.15, color: { r: 140, g: 70, b: 35 } },
+                        { x: centerX, y: centerY - planetRadius * 0.8, size: planetRadius * 0.1, color: { r: 255, g: 255, b: 255 } } // Ice cap
+                    );
+                    break;
+                case 1: // Earth-like - continents and clouds
+                    surfaceDetails.push(
+                        { x: centerX - planetRadius * 0.2, y: centerY, size: planetRadius * 0.3, color: { r: 30, g: 100, b: 40 } }, // Continent
+                        { x: centerX + planetRadius * 0.3, y: centerY - planetRadius * 0.2, size: planetRadius * 0.25, color: { r: 35, g: 110, b: 45 } },
+                        { x: centerX, y: centerY + planetRadius * 0.4, size: planetRadius * 0.15, color: { r: 220, g: 220, b: 255 } } // Cloud
+                    );
+                    break;
+                case 2: // Desert planet - dune patterns
+                    for (let d = 0; d < 4; d++) {
+                        const angle = (d * Math.PI * 2) / 4;
+                        const x = centerX + Math.cos(angle) * planetRadius * 0.3;
+                        const y = centerY + Math.sin(angle) * planetRadius * 0.3;
+                        surfaceDetails.push({ x, y, size: planetRadius * 0.1, color: { r: 200, g: 180, b: 100 } });
+                    }
+                    break;
+                case 3: // Forest planet - vegetation patches
+                    for (let f = 0; f < 5; f++) {
+                        const angle = (f * Math.PI * 2) / 5;
+                        const x = centerX + Math.cos(angle) * planetRadius * 0.4;
+                        const y = centerY + Math.sin(angle) * planetRadius * 0.4;
+                        surfaceDetails.push({ x, y, size: planetRadius * 0.12, color: { r: 60, g: 150, b: 60 } });
+                    }
+                    break;
+            }
+            
+            // Draw surface details
+            surfaceDetails.forEach(detail => {
+                renderer.drawCircle(detail.x, detail.y, detail.size, detail.color, true);
+                // Add subtle highlight
+                renderer.drawCircle(detail.x - detail.size * 0.3, detail.y - detail.size * 0.3, detail.size * 0.5, 
+                    { r: detail.color.r + 30, g: detail.color.g + 30, b: detail.color.b + 30 }, true);
+            });
+            
+            // Terminator line (day/night boundary)
+            const terminatorX = centerX + planetRadius * 0.3;
+            for (let y = centerY - planetRadius; y <= centerY + planetRadius; y += 2) {
+                const distFromCenter = Math.abs(y - centerY);
+                if (distFromCenter < planetRadius) {
+                    const shadowWidth = Math.sqrt(planetRadius * planetRadius - distFromCenter * distFromCenter) * 0.6;
+                    if (terminatorX - shadowWidth > centerX - planetRadius) {
+                        renderer.setPixel(terminatorX - shadowWidth, y, { r: 0, g: 0, b: 0 });
+                    }
+                }
+            }
+            
+            // Specular highlight (sun reflection)
+            const highlightX = centerX - planetRadius * 0.4;
+            const highlightY = centerY - planetRadius * 0.4;
+            const highlightSize = planetRadius * 0.15;
+            renderer.drawCircle(highlightX, highlightY, highlightSize, 
+                { r: 255, g: 255, b: 255 }, true);
+            renderer.drawCircle(highlightX, highlightY, highlightSize * 0.7, 
+                { r: 255, g: 255, b: 220 }, true);
         });
         
         // Render enhanced demo ship if available
         if (this.demoShip) {
             const shipSize = 48; // Larger ship
             const shipSprite = renderer.generateShipSprite('player', shipSize);
-            renderer.drawSprite(shipSprite, this.demoShip.position.x - shipSize/2, this.demoShip.position.y - shipSize/2);
+            const shipX = this.demoShip.position.x - shipSize/2;
+            const shipY = this.demoShip.position.y - shipSize/2;
             
-            // Add engine glow
-            renderer.drawCircle(this.demoShip.position.x, this.demoShip.position.y + shipSize/2, 8, 
-                { r: 0, g: 150, b: 255 }, true);
+            renderer.drawSprite(shipSprite, shipX, shipY);
+            
+            // Enhanced engine effects
+            const engineGlowSize = 12;
+            const engineY = this.demoShip.position.y + shipSize/2 + 5;
+            
+            // Main engine exhausts
+            renderer.drawCircle(this.demoShip.position.x - 8, engineY, engineGlowSize, 
+                { r: 100, g: 200, b: 255 }, true);
+            renderer.drawCircle(this.demoShip.position.x + 8, engineY, engineGlowSize, 
+                { r: 100, g: 200, b: 255 }, true);
+            
+            // Bright engine cores
+            renderer.drawCircle(this.demoShip.position.x - 8, engineY, engineGlowSize * 0.6, 
+                { r: 200, g: 240, b: 255 }, true);
+            renderer.drawCircle(this.demoShip.position.x + 8, engineY, engineGlowSize * 0.6, 
+                { r: 200, g: 240, b: 255 }, true);
+            
+            // Engine plasma trails
+            for (let i = 1; i <= 5; i++) {
+                const trailY = engineY + i * 4;
+                const trailOpacity = (6 - i) / 6;
+                const trailSize = engineGlowSize * trailOpacity;
+                
+                renderer.drawCircle(this.demoShip.position.x - 8, trailY, trailSize, 
+                    { r: 50 * trailOpacity, g: 150 * trailOpacity, b: 255 * trailOpacity }, true);
+                renderer.drawCircle(this.demoShip.position.x + 8, trailY, trailSize, 
+                    { r: 50 * trailOpacity, g: 150 * trailOpacity, b: 255 * trailOpacity }, true);
+            }
+            
+            // Navigation lights
+            renderer.setPixel(this.demoShip.position.x - shipSize/2 + 5, this.demoShip.position.y - 10, 
+                { r: 255, g: 0, b: 0 }); // Red port light
+            renderer.setPixel(this.demoShip.position.x + shipSize/2 - 5, this.demoShip.position.y - 10, 
+                { r: 0, g: 255, b: 0 }); // Green starboard light
+            renderer.setPixel(this.demoShip.position.x, this.demoShip.position.y - shipSize/2 + 5, 
+                { r: 255, g: 255, b: 255 }); // White forward light
         }
         
         // Render enhanced HUD
@@ -678,50 +789,158 @@ export class GameStateManager {
      * Render enhanced space background
      */
     private renderEnhancedSpaceBackground(renderer: Renderer): void {
-        // Enhanced star field with multiple layers
-        for (let i = 0; i < 400; i++) {
-            const x = (i * 73) % 1440;
-            const y = (i * 149) % 900;
-            const brightness = (i % 4) + 1;
-            const size = brightness > 2 ? 2 : 1;
+        // Deep space gradient background
+        renderer.fillRect(0, 0, 1440, 900, { r: 2, g: 4, b: 12 });
+        
+        // Distant galaxy background (faint milky way)
+        for (let i = 0; i < 50; i++) {
+            const x = (i * 28.8) % 1440;
+            const y = 200 + Math.sin(i * 0.1) * 150;
+            const size = 40 + (i % 20);
+            const intensity = 8 + (i % 12);
             
-            const color = { 
-                r: brightness * 48 + Math.floor(Math.random() * 32), 
-                g: brightness * 48 + Math.floor(Math.random() * 32), 
-                b: brightness * 72 + Math.floor(Math.random() * 48)
-            };
+            renderer.drawCircle(x, y, size, { 
+                r: intensity, 
+                g: intensity * 0.9, 
+                b: intensity * 1.3 
+            }, true);
+        }
+        
+        // Enhanced multi-layer star field
+        for (let layer = 0; layer < 3; layer++) {
+            const starCount = [150, 100, 50][layer]; // Different densities per layer
+            const brightness = [4, 3, 2][layer]; // Brightness per layer
             
-            if (size === 1) {
-                renderer.setPixel(x, y, color);
-            } else {
-                renderer.drawCircle(x, y, size, color, true);
+            for (let i = 0; i < starCount; i++) {
+                const x = ((i * 73) + layer * 123) % 1440;
+                const y = ((i * 149) + layer * 67) % 900;
+                const starBrightness = (i % 4) + brightness;
+                const size = starBrightness > 5 ? 3 : starBrightness > 3 ? 2 : 1;
+                
+                // Star color variation (blue-white to red giants)
+                const colorVariation = i % 6;
+                let color;
+                switch (colorVariation) {
+                    case 0: // Blue-white hot stars
+                        color = { 
+                            r: starBrightness * 40, 
+                            g: starBrightness * 45, 
+                            b: starBrightness * 60 
+                        };
+                        break;
+                    case 1: // White stars
+                        color = { 
+                            r: starBrightness * 50, 
+                            g: starBrightness * 50, 
+                            b: starBrightness * 50 
+                        };
+                        break;
+                    case 2: // Yellow stars (like our sun)
+                        color = { 
+                            r: starBrightness * 55, 
+                            g: starBrightness * 50, 
+                            b: starBrightness * 35 
+                        };
+                        break;
+                    case 3: // Orange stars
+                        color = { 
+                            r: starBrightness * 55, 
+                            g: starBrightness * 40, 
+                            b: starBrightness * 25 
+                        };
+                        break;
+                    case 4: // Red giants
+                        color = { 
+                            r: starBrightness * 60, 
+                            g: starBrightness * 25, 
+                            b: starBrightness * 15 
+                        };
+                        break;
+                    default: // Distant dim stars
+                        color = { 
+                            r: starBrightness * 30, 
+                            g: starBrightness * 30, 
+                            b: starBrightness * 40 
+                        };
+                }
+                
+                if (size === 1) {
+                    renderer.setPixel(x, y, color);
+                } else if (size === 2) {
+                    renderer.fillRect(x, y, 2, 2, color);
+                    // Add subtle glow
+                    renderer.setPixel(x-1, y, { r: color.r * 0.3, g: color.g * 0.3, b: color.b * 0.3 });
+                    renderer.setPixel(x+2, y, { r: color.r * 0.3, g: color.g * 0.3, b: color.b * 0.3 });
+                    renderer.setPixel(x, y-1, { r: color.r * 0.3, g: color.g * 0.3, b: color.b * 0.3 });
+                    renderer.setPixel(x, y+2, { r: color.r * 0.3, g: color.g * 0.3, b: color.b * 0.3 });
+                } else {
+                    renderer.drawCircle(x, y, size, color, true);
+                    // Bright star corona
+                    renderer.drawCircle(x, y, size + 1, { 
+                        r: color.r * 0.4, 
+                        g: color.g * 0.4, 
+                        b: color.b * 0.4 
+                    }, true);
+                }
             }
         }
         
-        // Add nebula-like background effects
-        for (let i = 0; i < 10; i++) {
-            const x = (i * 144) % 1440;
-            const y = (i * 90) % 900;
-            const size = 50 + (i % 30);
-            const color = {
-                r: 20 + (i % 10),
-                g: 10 + (i % 15),
-                b: 40 + (i % 20)
-            };
+        // Colorful nebulae patches
+        const nebulaColors = [
+            { r: 80, g: 20, b: 100 }, // Purple nebula
+            { r: 100, g: 40, b: 20 }, // Orange nebula
+            { r: 20, g: 80, b: 100 }, // Blue nebula
+            { r: 80, g: 100, b: 30 }, // Green nebula
+            { r: 100, g: 20, b: 60 }  // Pink nebula
+        ];
+        
+        for (let i = 0; i < 8; i++) {
+            const x = (i * 180) % 1440;
+            const y = (i * 112.5) % 900;
+            const size = 60 + (i % 40);
+            const baseColor = nebulaColors[i % nebulaColors.length];
             
-            // Render subtle nebula patches
-            for (let j = 0; j < size; j += 5) {
-                const angle = (j / size) * Math.PI * 2;
-                const radius = size * 0.6;
-                const px = x + Math.cos(angle) * radius;
-                const py = y + Math.sin(angle) * radius;
-                
-                if (px >= 0 && px < 1440 && py >= 0 && py < 900) {
-                    renderer.setPixel(Math.floor(px), Math.floor(py), {
-                        r: color.r * 0.3,
-                        g: color.g * 0.3, 
-                        b: color.b * 0.3
-                    });
+            // Create wispy nebula effect
+            for (let angle = 0; angle < Math.PI * 2; angle += 0.2) {
+                for (let radius = 0; radius < size; radius += 8) {
+                    const opacity = (1 - radius / size) * 0.3;
+                    const px = x + Math.cos(angle) * radius + Math.sin(angle * 3) * 10;
+                    const py = y + Math.sin(angle) * radius + Math.cos(angle * 2) * 8;
+                    
+                    if (px >= 0 && px < 1440 && py >= 0 && py < 900) {
+                        const nebulaColor = {
+                            r: Math.floor(baseColor.r * opacity),
+                            g: Math.floor(baseColor.g * opacity),
+                            b: Math.floor(baseColor.b * opacity)
+                        };
+                        renderer.setPixel(Math.floor(px), Math.floor(py), nebulaColor);
+                    }
+                }
+            }
+        }
+        
+        // Distant galaxies (very faint spiral shapes)
+        for (let i = 0; i < 3; i++) {
+            const x = 200 + i * 500;
+            const y = 150 + i * 200;
+            const size = 30 + i * 10;
+            
+            // Spiral galaxy arms
+            for (let arm = 0; arm < 2; arm++) {
+                for (let t = 0; t < Math.PI * 4; t += 0.3) {
+                    const armOffset = arm * Math.PI;
+                    const radius = (t / (Math.PI * 4)) * size;
+                    const px = x + Math.cos(t + armOffset) * radius;
+                    const py = y + Math.sin(t + armOffset) * radius * 0.6; // Elliptical
+                    
+                    if (px >= 0 && px < 1440 && py >= 0 && py < 900) {
+                        const intensity = (1 - t / (Math.PI * 4)) * 15;
+                        renderer.setPixel(Math.floor(px), Math.floor(py), {
+                            r: intensity * 0.8,
+                            g: intensity * 0.8,
+                            b: intensity * 1.2
+                        });
+                    }
                 }
             }
         }
