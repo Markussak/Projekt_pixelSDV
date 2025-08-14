@@ -14,7 +14,6 @@ export enum MenuState {
     NewGame = 'new_game',
     LoadGame = 'load_game',
     Settings = 'settings',
-    Credits = 'credits',
     Connecting = 'connecting',
     GameStart = 'game_start'
 }
@@ -273,8 +272,8 @@ export class MainMenu {
         this.buttons = [
             {
                 id: 'new_game',
-                text: 'NEW GAME',
-                x: 0, y: 0, width: 200, height: 40,
+                text: 'NOVÁ HRA',
+                x: 0, y: 0, width: 220, height: 45,
                 enabled: true,
                 highlighted: false,
                 action: () => this.transitionToState(MenuState.NewGame),
@@ -282,8 +281,8 @@ export class MainMenu {
             },
             {
                 id: 'load_game',
-                text: 'LOAD GAME',
-                x: 0, y: 0, width: 200, height: 40,
+                text: 'NAČÍST HRU',
+                x: 0, y: 0, width: 220, height: 45,
                 enabled: this.hasSaveGames(),
                 highlighted: false,
                 action: () => this.transitionToState(MenuState.LoadGame),
@@ -291,26 +290,17 @@ export class MainMenu {
             },
             {
                 id: 'settings',
-                text: 'SETTINGS',
-                x: 0, y: 0, width: 200, height: 40,
+                text: 'NASTAVENÍ',
+                x: 0, y: 0, width: 220, height: 45,
                 enabled: true,
                 highlighted: false,
                 action: () => this.transitionToState(MenuState.Settings),
                 hotkey: 'KeyS'
             },
             {
-                id: 'credits',
-                text: 'CREDITS',
-                x: 0, y: 0, width: 200, height: 40,
-                enabled: true,
-                highlighted: false,
-                action: () => this.transitionToState(MenuState.Credits),
-                hotkey: 'KeyC'
-            },
-            {
                 id: 'exit',
-                text: 'EXIT',
-                x: 0, y: 0, width: 200, height: 40,
+                text: 'UKONČIT',
+                x: 0, y: 0, width: 220, height: 45,
                 enabled: true,
                 highlighted: false,
                 action: () => this.events.onExit?.(),
@@ -520,24 +510,7 @@ export class MainMenu {
         this.updateButtonHighlights();
     }
 
-    /**
-     * Initialize credits menu
-     */
-    private initializeCreditsMenu(): void {
-        this.buttons = [
-            {
-                id: 'back',
-                text: 'BACK',
-                x: 400, y: 500, width: 200, height: 40,
-                enabled: true,
-                highlighted: false,
-                action: () => this.transitionToState(MenuState.MainMenu)
-            }
-        ];
-        
-        this.selectedButtonIndex = 0;
-        this.updateButtonHighlights();
-    }
+
 
     /**
      * Update button positions based on screen size
@@ -640,9 +613,6 @@ export class MainMenu {
                 break;
             case MenuState.Settings:
                 this.initializeSettingsMenu();
-                break;
-            case MenuState.Credits:
-                this.initializeCreditsMenu();
                 break;
         }
     }
@@ -1073,9 +1043,6 @@ export class MainMenu {
             case MenuState.Settings:
                 this.renderSettingsMenu(renderer);
                 break;
-            case MenuState.Credits:
-                this.renderCreditsMenu(renderer);
-                break;
             case MenuState.GameStart:
                 this.renderGameStart(renderer);
                 break;
@@ -1103,8 +1070,8 @@ export class MainMenu {
             b: 12 + Math.floor(this.titleGlow * 8)
         };
         
-        this.renderText(renderer, 'STELLAR ODYSSEY', 400, 100, 'large', titleColor, 'center');
-        this.renderText(renderer, 'DEEP SPACE EXPLORATION', 400, 140, 'medium', { r: 48, g: 48, b: 48 }, 'center');
+        this.renderText(renderer, 'VESMÍRNÝ PRŮZKUMNÍK', 400, 100, 'large', titleColor, 'center');
+        this.renderText(renderer, 'DOBRODRUŽSTVÍ V HLUBOKÉM VESMÍRU', 400, 140, 'medium', { r: 48, g: 48, b: 48 }, 'center');
         
         // Render version
         this.renderText(renderer, 'v1.0.0 ALPHA', 780, 580, 'small', { r: 32, g: 32, b: 32 }, 'right');
@@ -1115,8 +1082,8 @@ export class MainMenu {
         // Render hotkey hints
         if (this.currentState === MenuState.MainMenu) {
             const hints = [
-                'N - New Game    L - Load Game    S - Settings    C - Credits    Q - Exit',
-                'Use ARROW KEYS or WASD to navigate, ENTER to select, ESC to go back'
+                'N - Nová hra    L - Načíst hru    S - Nastavení    Q - Ukončit',
+                'Použijte ŠIPKY nebo WASD pro navigaci, ENTER pro výběr, ESC pro návrat'
             ];
             
             hints.forEach((hint, index) => {
@@ -1178,47 +1145,7 @@ export class MainMenu {
         this.renderText(renderer, 'Use LEFT/RIGHT arrows to adjust values', 400, 500, 'small', { r: 32, g: 32, b: 32 }, 'center');
     }
 
-    /**
-     * Render credits menu
-     */
-    private renderCreditsMenu(renderer: Renderer): void {
-        this.renderText(renderer, 'STELLAR ODYSSEY', 400, 100, 'large', { r: 72, g: 48, b: 12 }, 'center');
-        
-        const credits = [
-            '',
-            'AI-DRIVEN GAME DEVELOPMENT',
-            '',
-            'Game Design & Programming:',
-            'Claude Sonnet 4 (Anthropic)',
-            '',
-            'Technology Stack:',
-            'TypeScript + HTML5 Canvas + WebGL',
-            'Web Audio API + Performance Monitoring',
-            'Procedural Generation + Advanced AI',
-            '',
-            'Special Thanks:',
-            'The TypeScript Community',
-            'Web Standards Contributors',
-            'Space Exploration Pioneers',
-            '',
-            '© 2024 AI-Powered Game Development',
-            'Created entirely through AI collaboration'
-        ];
-        
-        credits.forEach((line, index) => {
-            const y = 150 + index * 20;
-            const color = line === '' ? { r: 0, g: 0, b: 0 } :
-                         line.includes(':') ? { r: 48, g: 48, b: 48 } :
-                         { r: 32, g: 32, b: 32 };
-            
-            if (line !== '') {
-                this.renderText(renderer, line, 400, y, 'small', color, 'center');
-            }
-        });
-        
-        // Render back button
-        this.renderButtons(renderer);
-    }
+
 
     /**
      * Render game start loading
