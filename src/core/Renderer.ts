@@ -216,16 +216,32 @@ export class Renderer {
                 this.logger.info('✅ WebGL context initialized for shader effects');
                 // TODO: Load and compile shaders in future phases
             } else {
-                this.logger.warn('⚠️ WebGL not available, falling back to 2D canvas only');
-                this.config.enableCRT = false;
-                this.config.enablePostProcessing = false;
+                this.logger.info('📺 WebGL not supported, using optimized 2D canvas rendering');
+                this.fallbackTo2D();
             }
         } catch (error) {
-            this.logger.warn('⚠️ WebGL initialization failed', error);
+            this.logger.info('📺 WebGL unavailable, using 2D canvas fallback', error);
             this.gl = null;
-            this.config.enableCRT = false;
-            this.config.enablePostProcessing = false;
+            this.fallbackTo2D();
         }
+    }
+
+    /**
+     * Fallback to 2D canvas rendering with optimizations
+     */
+    private fallbackTo2D(): void {
+        this.config.enableCRT = false;
+        this.config.enablePostProcessing = false;
+        
+        // Enable additional 2D optimizations
+        this.ctx.globalCompositeOperation = 'source-over';
+        
+        // Optimize for performance when WebGL is not available
+        if ((this.ctx as any).willReadFrequently !== undefined) {
+            (this.ctx as any).willReadFrequently = true;
+        }
+        
+        this.logger.debug('2D canvas optimizations applied');
     }
 
     /**

@@ -195,11 +195,11 @@ export class Game {
                 this.setupAutoSave();
             }
             
-            // Initialize galaxy manager
-            await this.perfLogger.measureAsync('galaxy-init', async () => {
-                this.galaxyManager = new GalaxyManager();
-                await this.galaxyManager.initialize();
-            });
+            // Initialize galaxy manager (non-blocking)
+            this.galaxyManager = new GalaxyManager();
+            
+            // Start galaxy initialization in background
+            this.initializeGalaxyAsync();
             
             // Initialize cockpit UI
             this.cockpitStatusBar = new CockpitStatusBar({
@@ -527,25 +527,43 @@ export class Game {
         this.deltaTime = (currentTime - this.lastTime) / 1000; // Convert to seconds
         this.lastTime = currentTime;
 
-        // Cap delta time to prevent large jumps
-        this.deltaTime = Math.min(this.deltaTime, 1/15); // Max 15 FPS minimum
+        // Cap delta time to prevent large jumps and ensure minimum performance
+        this.deltaTime = Math.min(this.deltaTime, 1/10); // Max 10 FPS minimum (was 15)
 
         if (!this.isPaused) {
             try {
+                // Skip frame if taking too long to maintain responsiveness
+                const frameStartTime = performance.now();
+                
+                // Update game systems and measure performance
+                let updateTime = 0;
+                let renderTime = 0;
+
+                updateTime = this.perfLogger.measure('update', () => {
+                    this.update(this.deltaTime);
+                });
+
+                // Check if we have time budget for rendering
+                const updateEndTime = performance.now();
+                const timeBudget = 16.67; // Target 60 FPS (16.67ms per frame)
+                
+                if (updateEndTime - frameStartTime < timeBudget) {
+                    renderTime = this.perfLogger.measure('render', () => {
+                        this.render();
+                    });
+                } else {
+                    // Skip rendering this frame to maintain responsiveness
+                    this.logger.debug('Frame skipped - update took too long');
+                }
+
+                // Store timing results for performance stats
+                this.performanceStats.updateTime = updateTime;
+                this.performanceStats.renderTime = renderTime;
+
                 // Update performance stats
                 if (this.config.enablePerformanceMonitoring) {
                     this.updatePerformanceStats(currentTime);
                 }
-
-                // Update game systems
-                this.perfLogger.measure('update', () => {
-                    this.update(this.deltaTime);
-                });
-
-                // Render frame
-                this.perfLogger.measure('render', () => {
-                    this.render();
-                });
 
                 this.frameCount++;
 
@@ -993,16 +1011,29 @@ export class Game {
             this.fpsCounter = 0;
             this.lastFpsUpdate = currentTime;
             
-            // Update memory usage if available
+            // Update memory usage if available (less frequently for performance)
             if ((performance as any).memory) {
                 this.performanceStats.memoryUsage = (performance as any).memory.usedJSHeapSize / 1024 / 1024;
             }
+            
+            // Only update performance monitor every second to reduce overhead
+            if (this.performanceMonitor) {
+                this.performanceMonitor.update({
+                    fps: this.performanceStats.averageFPS,
+                    frameTime: this.performanceStats.frameTime,
+                    memory: this.performanceStats.memoryUsage,
+                    renderTime: this.performanceStats.renderTime,
+                    updateTime: this.performanceStats.updateTime,
+                    activeSounds: this.performanceStats.activeSounds,
+                    particles: this.performanceStats.particles,
+                    entities: this.performanceStats.entities
+                });
+            }
         }
         
-        // Update frame timing
+        // Update frame timing - values are already set in the game loop
         this.performanceStats.frameTime = this.deltaTime * 1000;
-        this.performanceStats.renderTime = this.perfLogger.end('render') || 0;
-        this.performanceStats.updateTime = this.perfLogger.end('update') || 0;
+        // renderTime and updateTime are already set in the game loop
     }
 
     /**
@@ -1182,6 +1213,22 @@ export class Game {
             
         } catch (error) {
             this.logger.error('❌ Failed to setup demo content', error);
+        }
+    }
+
+    /**
+     * Initialize galaxy asynchronously to prevent blocking
+     */
+    private async initializeGalaxyAsync(): Promise<void> {
+        try {
+            this.logger.info('🌌 Starting galaxy initialization...');
+            await this.perfLogger.measureAsync('galaxy-init', async () => {
+                await this.galaxyManager!.initialize();
+            });
+            this.logger.info('✅ Galaxy initialization completed');
+        } catch (error) {
+            this.logger.error('❌ Galaxy initialization failed, continuing with minimal setup', error);
+            // Game can continue without galaxy initially
         }
     }
 

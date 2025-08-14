@@ -219,9 +219,24 @@ export class GameStateManager {
         // Loading → MainMenu
         this.addTransition(GameState.Loading, GameState.MainMenu);
         
+        // MainMenu self-transition (for menu refresh/reset)
+        this.addTransition(GameState.MainMenu, GameState.MainMenu);
+        
         // MainMenu ↔ Playing
         this.addTransition(GameState.MainMenu, GameState.Playing);
         this.addTransition(GameState.Playing, GameState.MainMenu);
+        
+        // MainMenu → Settings/Credits/NewGame/LoadGame
+        this.addTransition(GameState.MainMenu, GameState.Settings);
+        this.addTransition(GameState.MainMenu, GameState.Credits);
+        this.addTransition(GameState.MainMenu, GameState.NewGame);
+        this.addTransition(GameState.MainMenu, GameState.LoadGame);
+        
+        // Settings/Credits/NewGame/LoadGame → MainMenu
+        this.addTransition(GameState.Settings, GameState.MainMenu);
+        this.addTransition(GameState.Credits, GameState.MainMenu);
+        this.addTransition(GameState.NewGame, GameState.MainMenu);
+        this.addTransition(GameState.LoadGame, GameState.MainMenu);
         
         // Playing ↔ Paused
         this.addTransition(GameState.Playing, GameState.Paused);
@@ -232,6 +247,7 @@ export class GameStateManager {
         this.addTransition(GameState.Playing, GameState.Research);
         this.addTransition(GameState.Playing, GameState.Navigation);
         this.addTransition(GameState.Playing, GameState.Diplomacy);
+        this.addTransition(GameState.Playing, GameState.Settings);
         
         // Sub-states → Playing
         this.addTransition(GameState.Inventory, GameState.Playing);
@@ -267,6 +283,13 @@ export class GameStateManager {
      * Set the current game state
      */
     async setState(newState: GameState): Promise<void> {
+        // Handle same-state transition gracefully
+        if (this.currentState === newState) {
+            this.logger.debug(`Refreshing current state: ${newState}`);
+            await this.onStateEnter(newState);
+            return;
+        }
+        
         const transitionKey = `${this.currentState}->${newState}`;
         const transition = this.transitions.get(transitionKey);
         

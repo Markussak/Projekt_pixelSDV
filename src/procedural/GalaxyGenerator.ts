@@ -459,19 +459,26 @@ export class GalaxyGenerator {
         
         let systemCount = 0;
         const stars = Array.from(this.stars.values());
-        const batchSize = 5; // Reduced batch size for better responsiveness
+        
+        // Use larger batch size but with async yielding for better performance
+        const batchSize = Math.max(10, Math.floor(stars.length / 20)); // Dynamic batch size
         
         for (let i = 0; i < stars.length; i += batchSize) {
             const batch = stars.slice(i, i + batchSize);
             
-            // Process batch
+            // Process batch synchronously for speed, but yield periodically
             for (const star of batch) {
                 // Not all stars have planetary systems
-                if (this.random.next() < 0.7) { // 70% chance of planets
-                    const system = await this.generateStarSystem(star);
+                if (this.random.next() < 0.6) { // Reduced to 60% for faster generation
+                    const system = this.generateStarSystemSync(star); // Use sync version for speed
                     this.starSystems.set(star.id, system);
                     systemCount++;
                 }
+            }
+            
+            // Yield control periodically to prevent blocking
+            if (i % (batchSize * 5) === 0) {
+                await new Promise(resolve => setTimeout(resolve, 0));
             }
             
             // Update progress
@@ -486,9 +493,23 @@ export class GalaxyGenerator {
     }
 
     /**
+     * Generate a single star system (synchronous version for performance)
+     */
+    private generateStarSystemSync(star: StarData): StarSystemData {
+        return this.generateStarSystemInternal(star);
+    }
+
+    /**
      * Generate a single star system
      */
     private async generateStarSystem(star: StarData): Promise<StarSystemData> {
+        return this.generateStarSystemInternal(star);
+    }
+
+    /**
+     * Internal star system generation logic
+     */
+    private generateStarSystemInternal(star: StarData): StarSystemData {
         const system: StarSystemData = {
             id: star.id,
             name: `${star.name} System`,
