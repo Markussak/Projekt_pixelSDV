@@ -476,17 +476,14 @@ export class GalaxyGenerator {
                 }
             }
             
-            // Yield control periodically to prevent blocking
-            if (i % (batchSize * 5) === 0) {
+            // Yield control periodically to prevent blocking (less frequently for speed)
+            if (i % (batchSize * 10) === 0) {
                 await new Promise(resolve => setTimeout(resolve, 0));
             }
             
             // Update progress
             const progress = 50 + Math.floor((i / stars.length) * 35); // 50-85% range
             progressCallback?.(progress, `Generated ${systemCount} star systems...`);
-            
-            // Yield control to prevent blocking
-            await new Promise(resolve => setTimeout(resolve, 1));
         }
         
         this.logger.debug(`Generated ${systemCount} star systems`);

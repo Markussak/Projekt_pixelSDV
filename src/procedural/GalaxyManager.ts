@@ -79,8 +79,8 @@ export class GalaxyManager {
             maxLoadedSystems: 100,
             galaxyConfig: {
                 seed: Math.floor(Math.random() * 1000000),
-                starCount: 8, // Much smaller for immediate play
-                size: 5000 // Smaller galaxy for faster loading
+                starCount: 5, // Even smaller for faster generation
+                size: 2000 // Smaller galaxy for faster loading
             },
             ...config
         };
@@ -120,9 +120,9 @@ export class GalaxyManager {
         this.logger.info('🚀 Initializing galaxy...');
         
         try {
-            // Set timeout for galaxy generation
+            // Set timeout for galaxy generation - increased timeout for more complex generation
             const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('Galaxy generation timeout')), 2000); // Very short timeout for immediate play
+                setTimeout(() => reject(new Error('Galaxy generation timeout')), 10000); // 10 seconds should be sufficient
             });
             
             const initPromise = this.doInitialize();
@@ -131,7 +131,11 @@ export class GalaxyManager {
             await Promise.race([initPromise, timeoutPromise]);
             
         } catch (error) {
-            this.logger.error('❌ Galaxy initialization failed, using fallback', error);
+            this.logger.error('❌ Galaxy initialization failed, using fallback', {
+                error: error instanceof Error ? error.message : String(error),
+                stack: error instanceof Error ? error.stack : undefined,
+                config: this.config
+            });
             
             // Clear any partial state
             this.loadedSystems.clear();
@@ -173,7 +177,9 @@ export class GalaxyManager {
         } else {
             // Generate new galaxy
             this.logger.info('🔄 Generating new galaxy...');
-            await this.generator.generateGalaxy();
+            await this.generator.generateGalaxy((progress, message) => {
+                this.logger.debug(`Galaxy generation: ${progress}% - ${message}`);
+            });
             
             // Set up initial player data
             await this.setupNewGame();
@@ -196,13 +202,19 @@ export class GalaxyManager {
         
         // Create a very simple galaxy with just a few stars
         this.generator = new GalaxyGenerator({
-            ...this.config.galaxyConfig,
-            starCount: 2, // Ultra-minimal galaxy for immediate play
-            size: 500 // Very small galaxy
+            seed: 12345, // Fixed seed for consistent fallback
+            starCount: 3, // Ultra-minimal galaxy for immediate play
+            size: 1000, // Very small galaxy but not too cramped
+            spiralArms: 2,
+            armTightness: 0.5,
+            coreSize: 100,
+            starDensity: 0.001
         });
         
         try {
-            await this.generator.generateGalaxy();
+            await this.generator.generateGalaxy((progress, message) => {
+                this.logger.debug(`Fallback galaxy generation: ${progress}% - ${message}`);
+            });
             await this.setupNewGame();
         } catch (error) {
             this.logger.error('Fallback galaxy generation failed, creating emergency fallback', error);
@@ -227,7 +239,9 @@ export class GalaxyManager {
         
         try {
             // Create just one star system manually
-            await this.generator.generateGalaxy();
+            await this.generator.generateGalaxy((progress, message) => {
+                this.logger.debug(`Emergency galaxy generation: ${progress}% - ${message}`);
+            });
             await this.setupNewGame();
         } catch (error) {
             this.logger.error('Emergency galaxy failed, creating hardcoded system', error);
