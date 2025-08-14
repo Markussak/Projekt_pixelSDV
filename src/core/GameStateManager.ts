@@ -658,12 +658,7 @@ export class GameStateManager {
                     b: intensity * 64
                 };
                 if (intensity > 0.1) {
-                    const currentColor = renderer.getPixel ? renderer.getPixel(x, y) : { r: 0, g: 0, b: 0 };
-                    renderer.setPixel(x, y, {
-                        r: Math.min(255, currentColor.r + color.r),
-                        g: Math.min(255, currentColor.g + color.g),
-                        b: Math.min(255, currentColor.b + color.b)
-                    });
+                    renderer.setPixel(x, y, color);
                 }
             }
         }

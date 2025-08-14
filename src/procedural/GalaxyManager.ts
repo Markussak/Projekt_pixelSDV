@@ -134,8 +134,6 @@ export class GalaxyManager {
             this.logger.error('❌ Galaxy initialization failed, using fallback', error);
             
             // Clear any partial state
-            this.stars?.clear?.();
-            this.starSystems?.clear?.();
             this.loadedSystems.clear();
             
             // Fallback to minimal galaxy
