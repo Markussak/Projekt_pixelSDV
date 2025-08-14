@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <title>Space Explorer 16-Bit | Retro Space Exploration</title>
     
+    <!-- Favicon to prevent 404 errors -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3e%3cpath fill='%23888' d='M16 2L2 16l14 14 14-14L16 2zm0 4l10 10-10 10L6 16 16 6z'/%3e%3c/svg%3e">
+    
     <!-- Progressive Web App settings -->
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="16-bit retro space exploration game with procedural galaxy generation" />
@@ -125,7 +128,8 @@
             99% { opacity: 0.98; }
         }
         
-        body {
+        /* Subtle flicker only on game canvas, not the whole page */
+        #gameCanvas {
             animation: flicker 0.15s infinite linear alternate;
         }
         
