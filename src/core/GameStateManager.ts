@@ -255,8 +255,14 @@ export class GameStateManager {
         this.addTransition(GameState.Navigation, GameState.Playing);
         this.addTransition(GameState.Diplomacy, GameState.Playing);
         
-        // Error state
-        this.addTransition(GameState.Playing, GameState.Error);
+        // Error state - can be reached from ANY state
+        Object.values(GameState).forEach(state => {
+            if (state !== GameState.Error) {
+                this.addTransition(state, GameState.Error);
+            }
+        });
+        
+        // Error state can go to MainMenu
         this.addTransition(GameState.Error, GameState.MainMenu);
         
         this.logger.debug('State transitions configured');
@@ -286,6 +292,17 @@ export class GameStateManager {
         // Handle same-state transition gracefully
         if (this.currentState === newState) {
             this.logger.debug(`Refreshing current state: ${newState}`);
+            if (newState !== GameState.Error) { // Don't refresh error state
+                await this.onStateEnter(newState);
+            }
+            return;
+        }
+        
+        // Allow error state from any state (emergency transition)
+        if (newState === GameState.Error) {
+            this.logger.warn(`Emergency transition to error state from: ${this.currentState}`);
+            this.previousState = this.currentState;
+            this.currentState = newState;
             await this.onStateEnter(newState);
             return;
         }
@@ -311,14 +328,27 @@ export class GameStateManager {
         
         // Execute transition action
         if (transition.action) {
-            transition.action();
+            try {
+                transition.action();
+            } catch (error) {
+                this.logger.error('Error executing transition action', error);
+                // Continue with state change despite action error
+            }
         }
         
         // Update state
         this.currentState = newState;
         
         // Handle state-specific initialization
-        await this.onStateEnter(newState);
+        try {
+            await this.onStateEnter(newState);
+        } catch (error) {
+            this.logger.error('Error entering new state', error);
+            // Don't go to error state if we're already handling an error
+            if (newState !== GameState.Error) {
+                await this.setState(GameState.Error);
+            }
+        }
     }
 
     /**
@@ -702,7 +732,7 @@ export class GameStateManager {
      */
     private renderMenuBackground(renderer: Renderer): void {
         // Image 3 as base64 (cockpit view with galaxy)
-        const menuBgData = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCABQAGQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD3+iiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9k=';
+        const menuBgData = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCABQAGQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxAAPwD3+iiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9k=';
         
         // For now, we'll draw a simple gradient background
         // In a real implementation, you'd decode and render the base64 image

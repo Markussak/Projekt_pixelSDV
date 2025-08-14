@@ -139,6 +139,8 @@ export class PerformanceMonitor {
     private events: PerformanceEvents;
     private logger: Logger;
 
+    private frameCount: number = 0;
+
     constructor(events: PerformanceEvents = {}) {
         this.logger = new Logger('PerformanceMonitor');
         this.events = events;
@@ -242,6 +244,9 @@ export class PerformanceMonitor {
         const frameTime = now - this.frameStartTime;
         this.frameStartTime = now;
         
+        // Increment frame count
+        this.frameCount++;
+        
         // Update FPS
         this.fpsCounter++;
         this.fpsTimer += deltaTime;
@@ -324,17 +329,20 @@ export class PerformanceMonitor {
      * Check performance thresholds
      */
     private checkThresholds(): void {
-        // FPS threshold
-        if (this.currentMetrics.fps < this.thresholds.fps.poor) {
+        // Only check thresholds every few frames to reduce overhead
+        if (this.frameCount % 30 !== 0) return; // Check every 30 frames (~0.5 seconds at 60fps)
+        
+        // FPS threshold - only warn if consistently low
+        if (this.currentMetrics.fps > 0 && this.currentMetrics.fps < this.thresholds.fps.poor) {
             this.events.onThresholdExceeded?.('fps', this.currentMetrics.fps, this.thresholds.fps.poor);
         }
         
-        // Memory threshold
+        // Memory threshold - only warn at critical levels
         if (this.currentMetrics.memoryPercentage > this.thresholds.memory.critical) {
             this.events.onThresholdExceeded?.('memory', this.currentMetrics.memoryPercentage, this.thresholds.memory.critical);
         }
         
-        // Frame time threshold
+        // Frame time threshold - only warn if extremely high
         if (this.currentMetrics.frameTime > this.thresholds.frameTime.critical) {
             this.events.onThresholdExceeded?.('frameTime', this.currentMetrics.frameTime, this.thresholds.frameTime.critical);
         }
@@ -476,18 +484,18 @@ export class PerformanceMonitor {
                 excellent: 60,
                 good: 45,
                 acceptable: 30,
-                poor: 20
+                poor: 15  // Lowered from 20 to 15
             },
             memory: {
-                low: 25,     // 25% of available memory
-                medium: 50,  // 50% of available memory
-                high: 75,    // 75% of available memory
-                critical: 90 // 90% of available memory
+                low: 35,     // Increased from 25% to 35%
+                medium: 60,  // Increased from 50% to 60%
+                high: 80,    // Increased from 75% to 80%
+                critical: 95 // Increased from 90% to 95%
             },
             frameTime: {
                 target: 16.67,   // 60fps target
-                warning: 33.33,  // 30fps warning
-                critical: 50     // 20fps critical
+                warning: 50,     // Increased from 33.33 to 50ms (20fps warning)
+                critical: 100    // Increased from 50 to 100ms (10fps critical)
             }
         };
     }
