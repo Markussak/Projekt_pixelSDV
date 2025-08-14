@@ -173,7 +173,7 @@ export class GalaxyGenerator {
         this.config = {
             seed: 42,
             size: 50000, // 50,000 light years radius
-            starCount: 1000, // Will be scaled for performance
+            starCount: 50, // Reduced for web performance
             spiralArms: 4,
             armTightness: 0.3,
             coreSize: 5000, // 5,000 light years
@@ -452,13 +452,24 @@ export class GalaxyGenerator {
         this.logger.debug('Generating star systems...');
         
         let systemCount = 0;
-        for (const star of this.stars.values()) {
-            // Not all stars have planetary systems
-            if (this.random.next() < 0.7) { // 70% chance of planets
-                const system = await this.generateStarSystem(star);
-                this.starSystems.set(star.id, system);
-                systemCount++;
+        const stars = Array.from(this.stars.values());
+        const batchSize = 10; // Process 10 stars at a time
+        
+        for (let i = 0; i < stars.length; i += batchSize) {
+            const batch = stars.slice(i, i + batchSize);
+            
+            // Process batch
+            for (const star of batch) {
+                // Not all stars have planetary systems
+                if (this.random.next() < 0.7) { // 70% chance of planets
+                    const system = await this.generateStarSystem(star);
+                    this.starSystems.set(star.id, system);
+                    systemCount++;
+                }
             }
+            
+            // Yield control to prevent blocking
+            await new Promise(resolve => setTimeout(resolve, 0));
         }
         
         this.logger.debug(`Generated ${systemCount} star systems`);

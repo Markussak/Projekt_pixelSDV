@@ -79,7 +79,20 @@ async function initializeGame(): Promise<void> {
         
         // Initialize procedural generators
         loader.updateProgress(80, 'GENERATING GALAXY...');
-        await game.initialize();
+        
+        // Add additional progress updates during galaxy generation
+        const progressInterval = setInterval(() => {
+            const currentProgress = Math.min(95, 80 + Math.floor(Math.random() * 10));
+            loader.updateProgress(currentProgress, 'GENERATING GALAXY...');
+        }, 500);
+        
+        try {
+            await game.initialize();
+            clearInterval(progressInterval);
+        } catch (error) {
+            clearInterval(progressInterval);
+            throw error;
+        }
         
         // Final setup
         loader.updateProgress(95, 'FINAL PREPARATIONS...');
