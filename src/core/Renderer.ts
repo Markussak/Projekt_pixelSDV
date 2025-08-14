@@ -482,38 +482,58 @@ export class Renderer {
             data[i + 3] = 0; // Alpha = 0 (transparent)
         }
         
-        // Ship color based on type
+        // Ship colors based on type - much brighter and more visible
         let shipColor: Color;
+        let accentColor: Color;
         switch (type) {
             case 'player':
-                shipColor = { r: 0, g: 255, b: 0 }; // Green
+                shipColor = { r: 80, g: 255, b: 80 }; // Bright green
+                accentColor = { r: 200, g: 255, b: 200 }; // Light green accent
                 break;
             case 'enemy':
-                shipColor = { r: 255, g: 0, b: 0 }; // Red
+                shipColor = { r: 255, g: 60, b: 60 }; // Bright red
+                accentColor = { r: 255, g: 150, b: 150 }; // Light red accent
                 break;
             case 'ally':
-                shipColor = { r: 0, g: 128, b: 255 }; // Blue
+                shipColor = { r: 60, g: 180, b: 255 }; // Bright blue
+                accentColor = { r: 150, g: 200, b: 255 }; // Light blue accent
                 break;
         }
         
-        // Simple ship design (triangle pointing up)
         const centerX = size / 2;
         const centerY = size / 2;
         
-        // Draw ship body
+        // Draw detailed ship design
         for (let y = 0; y < size; y++) {
             for (let x = 0; x < size; x++) {
                 const dx = x - centerX;
                 const dy = y - centerY;
                 
-                // Triangle shape
-                if (dy > -centerY * 0.8 && dy < centerY * 0.6) {
-                    const width = (centerY * 0.8 + dy) * 0.3;
-                    if (Math.abs(dx) < width) {
+                // Main ship body (arrow/triangle shape)
+                if (dy >= -centerY * 0.9 && dy <= centerY * 0.7) {
+                    const bodyWidth = Math.max(1, (centerY * 0.9 + dy) * 0.4);
+                    if (Math.abs(dx) <= bodyWidth) {
                         const index = (y * size + x) * 4;
-                        data[index] = shipColor.r;
-                        data[index + 1] = shipColor.g;
-                        data[index + 2] = shipColor.b;
+                        
+                        // Use accent color for edges, main color for center
+                        const isEdge = Math.abs(dx) > bodyWidth * 0.6 || 
+                                      dy <= -centerY * 0.8 || dy >= centerY * 0.6;
+                        const color = isEdge ? accentColor : shipColor;
+                        
+                        data[index] = color.r;
+                        data[index + 1] = color.g;
+                        data[index + 2] = color.b;
+                        data[index + 3] = 255;
+                    }
+                }
+                
+                // Engine exhausts (bright spots at the back)
+                if (dy > centerY * 0.4 && dy < centerY * 0.7) {
+                    if ((Math.abs(dx - centerX * 0.3) < 2) || (Math.abs(dx + centerX * 0.3) < 2)) {
+                        const index = (y * size + x) * 4;
+                        data[index] = 255; // Bright white/blue exhaust
+                        data[index + 1] = 255;
+                        data[index + 2] = 255;
                         data[index + 3] = 255;
                     }
                 }

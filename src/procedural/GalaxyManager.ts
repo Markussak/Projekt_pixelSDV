@@ -79,8 +79,8 @@ export class GalaxyManager {
             maxLoadedSystems: 100,
             galaxyConfig: {
                 seed: Math.floor(Math.random() * 1000000),
-                starCount: 25, // Even smaller for better performance
-                size: 30000 // 30,000 light years
+                starCount: 8, // Much smaller for immediate play
+                size: 5000 // Smaller galaxy for faster loading
             },
             ...config
         };
@@ -122,7 +122,7 @@ export class GalaxyManager {
         try {
             // Set timeout for galaxy generation
             const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('Galaxy generation timeout')), 5000); // Reduced to 5 seconds
+                setTimeout(() => reject(new Error('Galaxy generation timeout')), 2000); // Very short timeout for immediate play
             });
             
             const initPromise = this.doInitialize();
@@ -197,8 +197,8 @@ export class GalaxyManager {
         // Create a very simple galaxy with just a few stars
         this.generator = new GalaxyGenerator({
             ...this.config.galaxyConfig,
-            starCount: 3, // Ultra-minimal galaxy for immediate play
-            size: 1000 // Very small galaxy
+            starCount: 2, // Ultra-minimal galaxy for immediate play
+            size: 500 // Very small galaxy
         });
         
         try {

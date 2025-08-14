@@ -501,6 +501,9 @@ export class Game {
                 this.setupEmergencyContent();
             }
             
+            // Ensure canvas can receive input events
+            this.canvas.focus();
+            
             // Start the game loop first
             this.isRunning = true;
             this.isPaused = false;
@@ -509,20 +512,9 @@ export class Game {
             // Start the main loop
             this.gameLoop();
             
-            // Transition to main menu state first, then playing
-            await this.stateManager.setState(GameState.MainMenu);
-            
-            // Auto-transition to playing after a short delay
-            setTimeout(async () => {
-                try {
-                    await this.stateManager.setState(GameState.Playing);
-                    this.logger.info('✅ Game transitioned to playing state');
-                } catch (error) {
-                    this.logger.error('Failed to transition to playing state', error);
-                }
-            }, 1000);
-            
-            this.logger.info('✅ Game started successfully');
+            // Go directly to playing state for immediate gameplay
+            await this.stateManager.setState(GameState.Playing);
+            this.logger.info('✅ Game started in playing state');
             
         } catch (error) {
             this.logger.critical('❌ Failed to start game', error);
@@ -1092,18 +1084,42 @@ export class Game {
      * Render fallback space background
      */
     private renderFallbackSpaceBackground(): void {
-        // Simple star field
-        for (let i = 0; i < 100; i++) {
-            const x = (i * 73) % 1440;
-            const y = (i * 149) % 900;
-            const brightness = (i % 3) + 1;
+        // Dark space background with subtle gradient
+        this.renderer.fillRect(0, 0, 1440, 900, { r: 8, g: 12, b: 25 });
+        
+        // Simple star field with more stars and better distribution
+        for (let i = 0; i < 200; i++) {
+            const x = (i * 73 + 123) % 1440;
+            const y = (i * 149 + 67) % 900;
+            const brightness = (i % 4) + 1;
+            const starSize = brightness > 2 ? 2 : 1;
+            
             const color = { 
-                r: brightness * 64, 
-                g: brightness * 64, 
-                b: brightness * 96 
+                r: brightness * 48 + Math.floor(Math.random() * 32), 
+                g: brightness * 48 + Math.floor(Math.random() * 32), 
+                b: brightness * 64 + Math.floor(Math.random() * 48)
             };
             
-            this.renderer.setPixel(x, y, color);
+            // Draw star with slight twinkling effect
+            if (starSize === 2) {
+                this.renderer.fillRect(x, y, 2, 2, color);
+            } else {
+                this.renderer.setPixel(x, y, color);
+            }
+        }
+        
+        // Add some distant galaxies/nebulae
+        for (let i = 0; i < 20; i++) {
+            const x = (i * 217 + 45) % 1440;
+            const y = (i * 89 + 156) % 900;
+            const size = 20 + (i % 15);
+            const opacity = 30 + (i % 30);
+            
+            this.renderer.drawCircle(x, y, size, { 
+                r: opacity, 
+                g: opacity * 0.8, 
+                b: opacity * 1.2 
+            }, true);
         }
     }
     
