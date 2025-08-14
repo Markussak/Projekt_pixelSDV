@@ -441,12 +441,27 @@ export class GalaxyPersistence {
             
             request.onsuccess = () => {
                 const db = request.result;
-                const transaction = db.transaction(['galaxy'], 'readwrite');
-                const store = transaction.objectStore('galaxy');
                 
-                const putRequest = store.put(data, 'galaxyData');
-                putRequest.onsuccess = () => resolve();
-                putRequest.onerror = () => reject(putRequest.error);
+                // Check if object store exists before creating transaction
+                if (!db.objectStoreNames.contains('galaxy')) {
+                    this.logger.warn('Galaxy object store not found, skipping save');
+                    resolve();
+                    return;
+                }
+                
+                try {
+                    const transaction = db.transaction(['galaxy'], 'readwrite');
+                    const store = transaction.objectStore('galaxy');
+                    
+                    const putRequest = store.put(data, 'galaxyData');
+                    putRequest.onsuccess = () => resolve();
+                    putRequest.onerror = () => reject(putRequest.error);
+                    
+                    transaction.onerror = () => reject(transaction.error);
+                } catch (error) {
+                    this.logger.error('Transaction failed:', error);
+                    reject(error);
+                }
             };
         });
     }
@@ -468,15 +483,33 @@ export class GalaxyPersistence {
                     return;
                 }
                 
-                const transaction = db.transaction(['galaxy'], 'readonly');
-                const store = transaction.objectStore('galaxy');
-                
-                const getRequest = store.get('galaxyData');
-                getRequest.onsuccess = () => {
-                    const data = getRequest.result;
-                    resolve(data ? JSON.parse(data) : null);
-                };
-                getRequest.onerror = () => resolve(null);
+                try {
+                    const transaction = db.transaction(['galaxy'], 'readonly');
+                    const store = transaction.objectStore('galaxy');
+                    
+                    const getRequest = store.get('galaxyData');
+                    getRequest.onsuccess = () => {
+                        try {
+                            const data = getRequest.result;
+                            resolve(data ? JSON.parse(data) : null);
+                        } catch (parseError) {
+                            this.logger.error('Failed to parse galaxy data:', parseError);
+                            resolve(null);
+                        }
+                    };
+                    getRequest.onerror = () => {
+                        this.logger.warn('Failed to get galaxy data:', getRequest.error);
+                        resolve(null);
+                    };
+                    
+                    transaction.onerror = () => {
+                        this.logger.warn('Transaction failed:', transaction.error);
+                        resolve(null);
+                    };
+                } catch (error) {
+                    this.logger.error('Transaction creation failed:', error);
+                    resolve(null);
+                }
             };
         });
     }

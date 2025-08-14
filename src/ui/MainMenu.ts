@@ -516,9 +516,9 @@ export class MainMenu {
      * Update button positions based on screen size
      */
     private updateButtonPositions(): void {
-        const centerX = 400; // Assuming 800px width
-        const startY = 250;
-        const spacing = 50;
+        const centerX = 512; // Center for 1024px width
+        const startY = 300;
+        const spacing = 60;
         
         for (let i = 0; i < this.buttons.length; i++) {
             const button = this.buttons[i];
@@ -1020,13 +1020,13 @@ export class MainMenu {
      * Render menu system
      */
     render(renderer: Renderer): void {
-        // Clear screen with dark background
-        renderer.fillRect(0, 0, 800, 600, { r: 8, g: 8, b: 8 });
+        // Clear screen with dark background (using correct canvas dimensions)
+        renderer.fillRect(0, 0, 1024, 768, { r: 8, g: 8, b: 8 });
         
         // Apply screen flicker effect
         if (this.screenFlicker > 0.03) {
             const flickerAlpha = this.screenFlicker * 0.3;
-            renderer.fillRect(0, 0, 800, 600, { r: 16, g: 16, b: 16 });
+            renderer.fillRect(0, 0, 1024, 768, { r: 16, g: 16, b: 16 });
         }
         
         // Render current state
@@ -1070,11 +1070,11 @@ export class MainMenu {
             b: 12 + Math.floor(this.titleGlow * 8)
         };
         
-        this.renderText(renderer, 'VESMÍRNÝ PRŮZKUMNÍK', 400, 100, 'large', titleColor, 'center');
-        this.renderText(renderer, 'DOBRODRUŽSTVÍ V HLUBOKÉM VESMÍRU', 400, 140, 'medium', { r: 48, g: 48, b: 48 }, 'center');
+        this.renderText(renderer, 'VESMÍRNÝ PRŮZKUMNÍK', 512, 120, 'large', titleColor, 'center');
+        this.renderText(renderer, 'DOBRODRUŽSTVÍ V HLUBOKÉM VESMÍRU', 512, 160, 'medium', { r: 48, g: 48, b: 48 }, 'center');
         
         // Render version
-        this.renderText(renderer, 'v1.0.0 ALPHA', 780, 580, 'small', { r: 32, g: 32, b: 32 }, 'right');
+        this.renderText(renderer, 'v1.0.0 ALPHA', 950, 740, 'small', { r: 32, g: 32, b: 32 }, 'right');
         
         // Render buttons
         this.renderButtons(renderer);
@@ -1087,7 +1087,7 @@ export class MainMenu {
             ];
             
             hints.forEach((hint, index) => {
-                this.renderText(renderer, hint, 400, 520 + index * 20, 'small', { r: 24, g: 24, b: 24 }, 'center');
+                this.renderText(renderer, hint, 512, 650 + index * 25, 'small', { r: 24, g: 24, b: 24 }, 'center');
             });
         }
     }
@@ -1096,7 +1096,7 @@ export class MainMenu {
      * Render new game menu
      */
     private renderNewGameMenu(renderer: Renderer): void {
-        this.renderText(renderer, 'NEW MISSION SETUP', 400, 80, 'large', { r: 72, g: 48, b: 12 }, 'center');
+        this.renderText(renderer, 'NEW MISSION SETUP', 512, 100, 'large', { r: 72, g: 48, b: 12 }, 'center');
         
         // Render buttons
         this.renderButtons(renderer);
@@ -1198,9 +1198,9 @@ export class MainMenu {
             (1 - this.transitionProgress) * 2;
         
         // Screen wipe effect
-        const wipeHeight = 600 * alpha;
-        renderer.fillRect(0, 0, 800, wipeHeight, { r: 16, g: 16, b: 16 });
-        renderer.fillRect(0, 600 - wipeHeight, 800, wipeHeight, { r: 16, g: 16, b: 16 });
+        const wipeHeight = 768 * alpha;
+        renderer.fillRect(0, 0, 1024, wipeHeight, { r: 16, g: 16, b: 16 });
+        renderer.fillRect(0, 768 - wipeHeight, 1024, wipeHeight, { r: 16, g: 16, b: 16 });
     }
 
     /**
@@ -1252,20 +1252,31 @@ export class MainMenu {
     ): void {
         const fontSize = size === 'small' ? 12 : size === 'medium' ? 16 : 24;
         
-        // Simple text rendering for now - would use proper font rendering in full implementation
-        let textX = x;
-        if (align === 'center') {
-            textX = x - (text.length * fontSize * 0.3);
-        } else if (align === 'right') {
-            textX = x - (text.length * fontSize * 0.6);
-        }
-        
-        // Draw text as rectangles (simplified implementation)
-        for (let i = 0; i < text.length; i++) {
-            const charX = textX + i * fontSize * 0.6;
+        // Use renderer's text method if available, otherwise fallback
+        if (renderer.renderText) {
+            let textX = x;
+            if (align === 'center') {
+                textX = x - (text.length * fontSize * 0.3);
+            } else if (align === 'right') {
+                textX = x - (text.length * fontSize * 0.6);
+            }
             
-            if (text[i] !== ' ') {
-                renderer.fillRect(charX, y - fontSize / 2, fontSize * 0.5, fontSize, color);
+            renderer.renderText(text, textX, y, color, fontSize);
+        } else {
+            // Fallback: Draw text as rectangles (simplified implementation)
+            let textX = x;
+            if (align === 'center') {
+                textX = x - (text.length * fontSize * 0.3);
+            } else if (align === 'right') {
+                textX = x - (text.length * fontSize * 0.6);
+            }
+            
+            for (let i = 0; i < text.length; i++) {
+                const charX = textX + i * fontSize * 0.6;
+                
+                if (text[i] !== ' ') {
+                    renderer.fillRect(charX, y - fontSize / 2, fontSize * 0.5, fontSize, color);
+                }
             }
         }
     }
