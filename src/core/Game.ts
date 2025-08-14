@@ -495,10 +495,13 @@ export class Game {
         this.logger.info('🎮 Starting game...');
         
         try {
-            // Transition to main menu state instead of playing directly
-            await this.stateManager.setState(GameState.MainMenu);
+            // Ensure we have basic content ready before starting
+            if (!this.playerShip) {
+                this.logger.warn('No player ship found, creating emergency content');
+                this.setupEmergencyContent();
+            }
             
-            // Start the game loop
+            // Start the game loop first
             this.isRunning = true;
             this.isPaused = false;
             this.lastTime = performance.now();
@@ -506,12 +509,36 @@ export class Game {
             // Start the main loop
             this.gameLoop();
             
+            // Transition to main menu state first, then playing
+            await this.stateManager.setState(GameState.MainMenu);
+            
+            // Auto-transition to playing after a short delay
+            setTimeout(async () => {
+                try {
+                    await this.stateManager.setState(GameState.Playing);
+                    this.logger.info('✅ Game transitioned to playing state');
+                } catch (error) {
+                    this.logger.error('Failed to transition to playing state', error);
+                }
+            }, 1000);
+            
             this.logger.info('✅ Game started successfully');
             
         } catch (error) {
             this.logger.critical('❌ Failed to start game', error);
             this.isRunning = false;
-            throw error;
+            
+            // Try emergency start
+            try {
+                this.setupEmergencyContent();
+                this.isRunning = true;
+                this.gameLoop();
+                await this.stateManager.setState(GameState.Playing);
+                this.logger.info('Emergency start successful');
+            } catch (emergencyError) {
+                this.logger.critical('Emergency start failed', emergencyError);
+                throw error;
+            }
         }
     }
 
@@ -528,10 +555,17 @@ export class Game {
         this.lastTime = currentTime;
 
         // Cap delta time to prevent large jumps and ensure minimum performance
-        this.deltaTime = Math.min(this.deltaTime, 1/10); // Max 10 FPS minimum (was 15)
+        this.deltaTime = Math.min(this.deltaTime, 1/15); // Max 15 FPS minimum (was 10)
 
         if (!this.isPaused) {
             try {
+                // Skip frame if game is in error state
+                if (this.stateManager.getCurrentState() === GameState.Error) {
+                    // Schedule next frame but don't process game logic
+                    requestAnimationFrame(() => this.gameLoop());
+                    return;
+                }
+                
                 // Skip frame if taking too long to maintain responsiveness
                 const frameStartTime = performance.now();
                 
@@ -545,7 +579,7 @@ export class Game {
 
                 // Check if we have time budget for rendering
                 const updateEndTime = performance.now();
-                const timeBudget = 16.67; // Target 60 FPS (16.67ms per frame)
+                const timeBudget = 33.33; // Target 30 FPS minimum (33.33ms per frame)
                 
                 if (updateEndTime - frameStartTime < timeBudget) {
                     renderTime = this.perfLogger.measure('render', () => {
@@ -570,6 +604,13 @@ export class Game {
             } catch (error) {
                 this.logger.error('Game loop error', error);
                 this.handleError(error);
+                // Don't immediately schedule next frame to give time for error handling
+                setTimeout(() => {
+                    if (this.isRunning) {
+                        requestAnimationFrame(() => this.gameLoop());
+                    }
+                }, 100); // 100ms delay before resuming
+                return;
             }
         }
 
@@ -843,6 +884,28 @@ export class Game {
                     this.stateManager.setState(GameState.Playing);
                 }
             }
+            
+            // Emergency menu access - ESC key should always work
+            if (this.input.isKeyPressed('Escape')) {
+                if (this.stateManager.getCurrentState() === GameState.Playing) {
+                    this.stateManager.setState(GameState.MainMenu);
+                } else if (this.stateManager.getCurrentState() === GameState.Error) {
+                    this.stateManager.setState(GameState.MainMenu);
+                } else if (this.stateManager.getCurrentState() === GameState.MainMenu) {
+                    this.stateManager.setState(GameState.Playing);
+                }
+            }
+            
+            // Emergency restart - R key
+            if (this.input.isKeyPressed('KeyR') && this.input.isKeyPressed('ControlLeft')) {
+                this.logger.info('Emergency restart requested');
+                try {
+                    this.setupEmergencyContent();
+                    this.stateManager.setState(GameState.Playing);
+                } catch (error) {
+                    this.logger.error('Emergency restart failed', error);
+                }
+            }
         }
         
         // Update cockpit UI
@@ -907,8 +970,8 @@ export class Game {
         this.performanceMonitor?.update(deltaTime);
         this.particleSystem?.update(deltaTime);
         
-        // Update performance metrics for monitoring
-        if (this.performanceMonitor) {
+        // Update performance metrics for monitoring (less frequently)
+        if (this.performanceMonitor && this.frameCount % 120 === 0) { // Every 2 seconds at 60fps
             const audioStats = this.proceduralAudio?.getAudioStats();
             this.performanceMonitor.setGameMetrics({
                 activeEntities: (this.celestialManager?.getActiveBodies()?.length || 0) + 1, // +1 for player
@@ -924,62 +987,145 @@ export class Game {
      * Render the current frame
      */
     private render(): void {
-        // Clear canvas and setup rendering
-        this.renderer.beginFrame();
-        
-        // Render space background first
-        if (this.spaceBackground && this.playerShip && this.stateManager.isGameActive()) {
-            this.spaceBackground.render(this.renderer, this.playerShip.getPosition());
-        }
-        
-        // Render current game state
-        this.stateManager.render(this.renderer);
-        
-        // Render game entities
-        if (this.playerShip && this.stateManager.isGameActive()) {
-            // Render thrust particles
-            this.playerShip.renderThrustParticles(this.renderer);
+        try {
+            // Clear canvas and setup rendering
+            this.renderer.beginFrame();
             
-            // Render warp effects (on top of ship)
-            this.playerShip.renderWarpEffects(this.renderer);
+            // Always render space background, even if other systems fail
+            try {
+                if (this.spaceBackground && this.playerShip && this.stateManager.isGameActive()) {
+                    this.spaceBackground.render(this.renderer, this.playerShip.getPosition());
+                } else if (this.stateManager.isGameActive()) {
+                    // Fallback space background
+                    this.renderFallbackSpaceBackground();
+                }
+            } catch (error) {
+                this.logger.debug('Space background render failed, using fallback');
+                this.renderFallbackSpaceBackground();
+            }
+            
+            // Render current game state
+            try {
+                this.stateManager.render(this.renderer);
+            } catch (error) {
+                this.logger.error('State manager render failed', error);
+                this.renderEmergencyScreen();
+            }
+            
+            // Render game entities if playing
+            if (this.stateManager.isGameActive()) {
+                try {
+                    // Render enhanced demo ship if available
+                    if (this.playerShip) {
+                        // Render thrust particles
+                        this.playerShip.renderThrustParticles(this.renderer);
+                        
+                        // Render warp effects (on top of ship)
+                        this.playerShip.renderWarpEffects(this.renderer);
+                    }
+                    
+                    // Render celestial bodies
+                    if (this.celestialManager && this.playerShip) {
+                        this.celestialManager.render(this.renderer, this.playerShip.getPosition());
+                    }
+                    
+                    // Render cockpit status bar
+                    if (this.cockpitStatusBar) {
+                        this.cockpitStatusBar.render(this.renderer);
+                    }
+                    
+                    // Render other UI elements
+                    if (this.inventoryManager && this.inventoryManager.isInventoryVisible()) {
+                        this.inventoryManager.render(this.renderer);
+                    }
+                    
+                    if (this.craftingSystem && this.craftingSystem.isCraftingVisible()) {
+                        this.craftingSystem.render(this.renderer);
+                    }
+                    
+                    // Render combat effects
+                    if (this.combatManager) {
+                        this.combatManager.render(this.renderer);
+                    }
+                    
+                } catch (error) {
+                    this.logger.debug('Game entity render failed', error);
+                    // Continue rendering other elements
+                }
+            }
+            
+            // Render debug information if enabled
+            if (this.config.enableDebug) {
+                try {
+                    this.renderDebugInfo();
+                } catch (error) {
+                    this.logger.debug('Debug render failed', error);
+                }
+            }
+            
+            // Render particles on top of everything
+            try {
+                if (this.particleSystem) {
+                    this.particleSystem.render(this.renderer);
+                }
+            } catch (error) {
+                this.logger.debug('Particle render failed', error);
+            }
+            
+            // Finalize frame
+            this.renderer.endFrame();
+            
+        } catch (error) {
+            this.logger.error('Critical render failure', error);
+            // Last resort: try to render something minimal
+            try {
+                this.renderer.beginFrame();
+                this.renderEmergencyScreen();
+                this.renderer.endFrame();
+            } catch (finalError) {
+                this.logger.critical('Total render failure', finalError);
+            }
         }
-        
-        // Render celestial bodies
-        if (this.celestialManager && this.playerShip && this.stateManager.isGameActive()) {
-            this.celestialManager.render(this.renderer, this.playerShip.getPosition());
+    }
+    
+    /**
+     * Render fallback space background
+     */
+    private renderFallbackSpaceBackground(): void {
+        // Simple star field
+        for (let i = 0; i < 100; i++) {
+            const x = (i * 73) % 1440;
+            const y = (i * 149) % 900;
+            const brightness = (i % 3) + 1;
+            const color = { 
+                r: brightness * 64, 
+                g: brightness * 64, 
+                b: brightness * 96 
+            };
+            
+            this.renderer.setPixel(x, y, color);
         }
+    }
+    
+    /**
+     * Render emergency screen when all else fails
+     */
+    private renderEmergencyScreen(): void {
+        const centerX = 720;
+        const centerY = 450;
         
-        // Render cockpit status bar
-        if (this.cockpitStatusBar) {
-            this.cockpitStatusBar.render(this.renderer);
-        }
+        // Dark background
+        this.renderer.fillRect(0, 0, 1440, 900, { r: 20, g: 20, b: 40 });
         
-        // Render inventory and crafting UIs
-        if (this.inventoryManager && this.inventoryManager.isInventoryVisible()) {
-            this.inventoryManager.render(this.renderer);
-        }
+        // Emergency message
+        this.renderer.renderText('SPACE EXPLORER - EMERGENCY MODE', centerX - 150, centerY - 50, 
+            { r: 255, g: 255, b: 255 }, 16);
         
-        if (this.craftingSystem && this.craftingSystem.isCraftingVisible()) {
-            this.craftingSystem.render(this.renderer);
-        }
+        this.renderer.renderText('Systems initializing...', centerX - 80, centerY, 
+            { r: 200, g: 200, b: 200 }, 14);
         
-        // Render combat effects
-        if (this.combatManager) {
-            this.combatManager.render(this.renderer);
-        }
-        
-        // Render debug information if enabled
-        if (this.config.enableDebug) {
-            this.renderDebugInfo();
-        }
-        
-        // Render particles on top of everything
-        if (this.particleSystem) {
-            this.particleSystem.render(this.renderer);
-        }
-        
-        // Finalize frame
-        this.renderer.endFrame();
+        this.renderer.renderText('Press ESC for menu', centerX - 70, centerY + 50, 
+            { r: 150, g: 150, b: 150 }, 12);
     }
 
     /**
@@ -1006,17 +1152,19 @@ export class Game {
         // Update FPS counter
         this.fpsCounter++;
         
-        if (currentTime - this.lastFpsUpdate >= 1000) {
-            this.performanceStats.averageFPS = this.fpsCounter;
+        // Only update performance stats every 2 seconds to reduce overhead
+        if (currentTime - this.lastFpsUpdate >= 2000) {
+            this.performanceStats.averageFPS = this.fpsCounter / 2; // Divide by 2 for 2-second interval
             this.fpsCounter = 0;
             this.lastFpsUpdate = currentTime;
             
             // Update memory usage if available (less frequently for performance)
             if ((performance as any).memory) {
-                this.performanceStats.memoryUsage = (performance as any).memory.usedJSHeapSize / 1024 / 1024;
+                const memory = (performance as any).memory;
+                this.performanceStats.memoryUsage = (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100;
             }
             
-            // Only update performance monitor every second to reduce overhead
+            // Only update performance monitor every 2 seconds to reduce overhead
             if (this.performanceMonitor) {
                 this.performanceMonitor.update({
                     fps: this.performanceStats.averageFPS,
@@ -1024,9 +1172,9 @@ export class Game {
                     memory: this.performanceStats.memoryUsage,
                     renderTime: this.performanceStats.renderTime,
                     updateTime: this.performanceStats.updateTime,
-                    activeSounds: this.performanceStats.activeSounds,
-                    particles: this.performanceStats.particles,
-                    entities: this.performanceStats.entities
+                    activeSounds: this.performanceStats.activeSounds || 0,
+                    particles: this.performanceStats.particles || 0,
+                    entities: this.performanceStats.entities || 0
                 });
             }
         }
@@ -1222,14 +1370,69 @@ export class Game {
     private async initializeGalaxyAsync(): Promise<void> {
         try {
             this.logger.info('🌌 Starting galaxy initialization...');
-            await this.perfLogger.measureAsync('galaxy-init', async () => {
-                await this.galaxyManager!.initialize();
+            
+            // Add timeout to prevent infinite hang
+            const galaxyInitPromise = this.galaxyManager!.initialize();
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Galaxy initialization timeout')), 8000);
             });
+            
+            await Promise.race([galaxyInitPromise, timeoutPromise]);
             this.logger.info('✅ Galaxy initialization completed');
+            
         } catch (error) {
-            this.logger.error('❌ Galaxy initialization failed, continuing with minimal setup', error);
-            // Game can continue without galaxy initially
+            this.logger.error('❌ Galaxy initialization failed, using fallback', error);
+            
+            // Ensure we can still play with minimal content
+            try {
+                // Create minimal demo content immediately
+                this.setupEmergencyContent();
+            } catch (emergencyError) {
+                this.logger.error('Emergency content setup failed', emergencyError);
+            }
         }
+    }
+    
+    /**
+     * Setup emergency content when galaxy fails
+     */
+    private setupEmergencyContent(): void {
+        this.logger.info('🚨 Setting up emergency content...');
+        
+        // Create a simple ship at screen center
+        const shipPosition = { x: 720, y: 450 };
+        
+        this.playerShip = new PlayerShip(
+            this.physics,
+            this.input,
+            this.audio,
+            shipPosition
+        );
+        
+        // Create a few simple planets for immediate gameplay
+        const planet1 = this.physics.createPlanet('emergency_planet_1', { x: 520, y: 300 }, 500000, 30);
+        const planet2 = this.physics.createPlanet('emergency_planet_2', { x: 920, y: 600 }, 400000, 25);
+        
+        this.physics.addObject(planet1);
+        this.physics.addObject(planet2);
+        
+        this.physics.addGravityWell('emergency_planet_1', {
+            position: planet1.position,
+            mass: planet1.mass,
+            radius: 120
+        });
+        
+        this.physics.addGravityWell('emergency_planet_2', {
+            position: planet2.position,
+            mass: planet2.mass,
+            radius: 100
+        });
+        
+        // Set up demo entities for state manager
+        this.stateManager.setDemoShip(this.playerShip.getPhysicsObject());
+        this.stateManager.setDemoPlanets([planet1, planet2]);
+        
+        this.logger.info('✅ Emergency content ready');
     }
 
     /**

@@ -122,7 +122,7 @@ export class GalaxyManager {
         try {
             // Set timeout for galaxy generation
             const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('Galaxy generation timeout')), 10000); // 10 second timeout
+                setTimeout(() => reject(new Error('Galaxy generation timeout')), 5000); // Reduced to 5 seconds
             });
             
             const initPromise = this.doInitialize();
@@ -135,10 +135,20 @@ export class GalaxyManager {
             
             // Clear any partial state
             this.loadedSystems.clear();
+            this.nearbyStars = [];
+            this.currentSystem = null;
             
             // Fallback to minimal galaxy
             await this.initializeFallbackGalaxy();
         }
+        
+        // Ensure we have at least a current system
+        if (!this.currentSystem) {
+            this.logger.warn('No current system found, creating emergency system');
+            await this.createEmergencySystem();
+        }
+        
+        this.logger.info('✅ Galaxy manager is ready');
     }
     
     private async doInitialize(): Promise<void> {
@@ -215,9 +225,70 @@ export class GalaxyManager {
             starDensity: 0.1
         });
         
-        // Create just one star system manually
-        await this.generator.generateGalaxy();
-        await this.setupNewGame();
+        try {
+            // Create just one star system manually
+            await this.generator.generateGalaxy();
+            await this.setupNewGame();
+        } catch (error) {
+            this.logger.error('Emergency galaxy failed, creating hardcoded system', error);
+            await this.createHardcodedSystem();
+        }
+    }
+    
+    private async createEmergencySystem(): Promise<void> {
+        this.logger.warn('Creating emergency system for immediate play');
+        await this.createHardcodedSystem();
+    }
+    
+    private async createHardcodedSystem(): Promise<void> {
+        // Create a completely hardcoded minimal system
+        const emergencySystem: StarSystemData = {
+            id: 'emergency_system',
+            name: 'Emergency System',
+            position: { x: 0, y: 0 },
+            star: {
+                id: 'emergency_star',
+                name: 'Emergency Star',
+                type: StarType.G,
+                mass: 1.0,
+                radius: 1.0,
+                temperature: 5778,
+                luminosity: 1.0,
+                position: { x: 0, y: 0 },
+                age: 4.6
+            },
+            planets: [
+                {
+                    id: 'emergency_planet_1',
+                    name: 'Emergency Planet I',
+                    type: 'terrestrial',
+                    mass: 1.0,
+                    radius: 6371,
+                    orbitDistance: 1.0,
+                    orbitPeriod: 365.25,
+                    temperature: 288,
+                    atmosphere: 'breathable',
+                    resources: ['water', 'minerals'],
+                    discovered: true,
+                    position: { x: 150, y: 0 }
+                }
+            ]
+        };
+        
+        // Set up exploration data
+        this.explorationData.currentSystemId = emergencySystem.id;
+        this.explorationData.homeSystemId = emergencySystem.id;
+        this.playerData.currentSystemId = emergencySystem.id;
+        this.playerData.homeSystemId = emergencySystem.id;
+        
+        // Set current system
+        this.currentSystem = emergencySystem;
+        this.loadedSystems.set(emergencySystem.id, emergencySystem);
+        
+        // Mark as explored
+        this.explorationData.exploredSystems.add(emergencySystem.id);
+        
+        this.logger.info('Emergency hardcoded system created and ready');
     }
 
     /**
