@@ -84,7 +84,7 @@ async function initializeGame(): Promise<void> {
         const progressInterval = setInterval(() => {
             const currentProgress = Math.min(95, 80 + Math.floor(Math.random() * 10));
             loader.updateProgress(currentProgress, 'GENERATING GALAXY...');
-        }, 500);
+        }, 1000);
         
         try {
             await game.initialize();

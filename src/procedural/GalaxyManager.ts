@@ -10,7 +10,8 @@ import {
     GalaxyConfig, 
     StarData, 
     StarSystemData,
-    PlanetData 
+    PlanetData,
+    StarType
 } from './GalaxyGenerator';
 import { 
     GalaxyPersistence, 
@@ -78,7 +79,7 @@ export class GalaxyManager {
             maxLoadedSystems: 100,
             galaxyConfig: {
                 seed: Math.floor(Math.random() * 1000000),
-                starCount: 50, // Much smaller for web performance
+                starCount: 25, // Even smaller for better performance
                 size: 30000 // 30,000 light years
             },
             ...config
@@ -121,7 +122,7 @@ export class GalaxyManager {
         try {
             // Set timeout for galaxy generation
             const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('Galaxy generation timeout')), 10000); // 10 second timeout
+                setTimeout(() => reject(new Error('Galaxy generation timeout')), 30000); // 30 second timeout
             });
             
             const initPromise = this.doInitialize();
@@ -131,6 +132,12 @@ export class GalaxyManager {
             
         } catch (error) {
             this.logger.error('❌ Galaxy initialization failed, using fallback', error);
+            
+            // Clear any partial state
+            this.stars?.clear?.();
+            this.starSystems?.clear?.();
+            this.loadedSystems.clear();
+            
             // Fallback to minimal galaxy
             await this.initializeFallbackGalaxy();
         }
@@ -202,7 +209,7 @@ export class GalaxyManager {
         // Find a G-type star with planets
         let startingSystem: StarSystemData | null = null;
         for (const star of centerStars) {
-            if (star.type === 'G') { // Sun-like star
+            if (star.type === StarType.G) { // Sun-like star
                 const system = this.generator.getStarSystem(star.id);
                 if (system && system.planets.length > 0) {
                     startingSystem = system;

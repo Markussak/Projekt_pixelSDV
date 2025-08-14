@@ -193,23 +193,29 @@ export class GalaxyGenerator {
     /**
      * Generate the entire galaxy
      */
-    async generateGalaxy(): Promise<void> {
+    async generateGalaxy(progressCallback?: (progress: number, message: string) => void): Promise<void> {
         this.logger.info('🔄 Generating galaxy...');
         
         const startTime = performance.now();
         
         try {
             // Generate star positions using spiral galaxy model
+            progressCallback?.(10, 'Creating star positions...');
             this.generateStarPositions();
             
             // Generate star properties
+            progressCallback?.(30, 'Calculating stellar properties...');
             this.generateStarProperties();
             
             // Generate star systems (planets, moons, etc.)
-            await this.generateStarSystems();
+            progressCallback?.(50, 'Generating planetary systems...');
+            await this.generateStarSystems(progressCallback);
             
             // Generate special objects and anomalies
+            progressCallback?.(90, 'Adding cosmic anomalies...');
             this.generateAnomalies();
+            
+            progressCallback?.(100, 'Galaxy generation complete!');
             
             const endTime = performance.now();
             this.logger.info(`✅ Galaxy generated in ${(endTime - startTime).toFixed(2)}ms`, {
@@ -448,12 +454,12 @@ export class GalaxyGenerator {
     /**
      * Generate complete star systems
      */
-    private async generateStarSystems(): Promise<void> {
+    private async generateStarSystems(progressCallback?: (progress: number, message: string) => void): Promise<void> {
         this.logger.debug('Generating star systems...');
         
         let systemCount = 0;
         const stars = Array.from(this.stars.values());
-        const batchSize = 10; // Process 10 stars at a time
+        const batchSize = 5; // Reduced batch size for better responsiveness
         
         for (let i = 0; i < stars.length; i += batchSize) {
             const batch = stars.slice(i, i + batchSize);
@@ -468,8 +474,12 @@ export class GalaxyGenerator {
                 }
             }
             
+            // Update progress
+            const progress = 50 + Math.floor((i / stars.length) * 35); // 50-85% range
+            progressCallback?.(progress, `Generated ${systemCount} star systems...`);
+            
             // Yield control to prevent blocking
-            await new Promise(resolve => setTimeout(resolve, 0));
+            await new Promise(resolve => setTimeout(resolve, 1));
         }
         
         this.logger.debug(`Generated ${systemCount} star systems`);
