@@ -191,7 +191,7 @@ export class GalaxyPersistence {
             // Load from storage
             const saveData = await this.loadFromStorage();
             if (!saveData) {
-                this.logger.warn('No galaxy save data found');
+                this.logger.info('No galaxy save data found, will create new galaxy');
                 return null;
             }
             
