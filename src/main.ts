@@ -11,54 +11,19 @@ import { Logger } from '@utils/Logger';
 let game: Game | null = null;
 
 /**
- * Loading progress management
- */
-class LoadingManager {
-    private progressElement: HTMLElement;
-    private textElement: HTMLElement;
-    private currentProgress = 0;
-
-    constructor() {
-        this.progressElement = document.getElementById('loadingProgress')!;
-        this.textElement = document.getElementById('loadingText')!;
-    }
-
-    updateProgress(progress: number, text?: string): void {
-        this.currentProgress = Math.max(this.currentProgress, progress);
-        this.progressElement.style.width = `${this.currentProgress}%`;
-        
-        if (text) {
-            this.textElement.textContent = text;
-        }
-    }
-
-    hide(): void {
-        const loadingScreen = document.getElementById('loadingScreen')!;
-        loadingScreen.classList.add('hidden');
-        
-        setTimeout(() => {
-            loadingScreen.style.display = 'none';
-        }, 500);
-    }
-}
-
-/**
- * Initialize the game with proper error handling and loading
+ * Initialize the game with proper error handling
  */
 async function initializeGame(): Promise<void> {
-    const loader = new LoadingManager();
     const logger = new Logger('Main');
     
     try {
         logger.info('🚀 Starting Space Explorer 16-Bit initialization...');
         
         // Detect platform for adaptive features
-        loader.updateProgress(10, 'DETECTING PLATFORM...');
         const platform = PlatformDetector.detect();
         logger.info(`Platform detected: ${platform}`);
         
         // Initialize canvas and context
-        loader.updateProgress(20, 'INITIALIZING GRAPHICS...');
         const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
         if (!canvas) {
             throw new Error('Game canvas not found');
@@ -69,40 +34,16 @@ async function initializeGame(): Promise<void> {
             adjustCanvasForMobile(canvas);
         }
         
-        // Pre-load critical resources
-        loader.updateProgress(40, 'LOADING CORE SYSTEMS...');
-        await preloadCriticalResources();
-        
         // Initialize game engine
-        loader.updateProgress(60, 'INITIALIZING GAME ENGINE...');
         game = new Game(canvas, platform);
         
-        // Initialize procedural generators
-        loader.updateProgress(80, 'GENERATING GALAXY...');
+        // Initialize game systems
+        await game.initialize();
         
-        // Add additional progress updates during galaxy generation
-        const progressInterval = setInterval(() => {
-            const currentProgress = Math.min(95, 80 + Math.floor(Math.random() * 10));
-            loader.updateProgress(currentProgress, 'GENERATING GALAXY...');
-        }, 1000);
-        
-        try {
-            await game.initialize();
-            clearInterval(progressInterval);
-        } catch (error) {
-            clearInterval(progressInterval);
-            throw error;
-        }
-        
-        // Final setup
-        loader.updateProgress(95, 'FINAL PREPARATIONS...');
+        // Setup event listeners
         setupEventListeners();
         
-        // Start the game
-        loader.updateProgress(100, 'LAUNCHING SPACE EXPLORER...');
-        await new Promise(resolve => setTimeout(resolve, 500)); // Brief pause for effect
-        
-        loader.hide();
+        // Start the game directly with main menu
         await game.start();
         
         logger.info('✅ Game successfully initialized and started');
@@ -121,7 +62,7 @@ function adjustCanvasForMobile(canvas: HTMLCanvasElement): void {
     const containerRect = container.getBoundingClientRect();
     
     // Calculate optimal size maintaining aspect ratio
-    const targetRatio = 1024 / 768;
+    const targetRatio = 1440 / 900; // Updated for new resolution
     let width = containerRect.width - 20; // margin
     let height = width / targetRatio;
     
@@ -134,19 +75,8 @@ function adjustCanvasForMobile(canvas: HTMLCanvasElement): void {
     canvas.style.height = `${height}px`;
     
     // Maintain internal resolution for pixel-perfect rendering
-    canvas.width = 1024;
-    canvas.height = 768;
-}
-
-/**
- * Pre-load any critical resources
- */
-async function preloadCriticalResources(): Promise<void> {
-    // For now, just simulate loading time
-    // In future phases, this will load essential assets
-    return new Promise(resolve => {
-        setTimeout(resolve, 200);
-    });
+    canvas.width = 1440;
+    canvas.height = 900;
 }
 
 /**
@@ -195,38 +125,40 @@ function setupEventListeners(): void {
  * Show error screen with debugging information
  */
 function showErrorScreen(error: Error): void {
-    const loadingScreen = document.getElementById('loadingScreen')!;
-    const loadingText = document.getElementById('loadingText')!;
-    const loadingBar = document.getElementById('loadingBar')!;
+    const gameContainer = document.getElementById('gameContainer')!;
     
-    loadingText.textContent = '❌ INITIALIZATION FAILED';
-    loadingText.style.color = '#f00';
-    loadingBar.style.display = 'none';
-    
-    // Create error details
-    const errorDetails = document.createElement('div');
-    errorDetails.style.cssText = `
+    // Create error screen
+    const errorScreen = document.createElement('div');
+    errorScreen.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
         color: #f00;
         font-family: monospace;
-        font-size: 12px;
-        margin-top: 20px;
-        text-align: left;
-        background: rgba(255, 0, 0, 0.1);
-        padding: 10px;
-        border: 1px solid #f00;
-        max-width: 80%;
-        overflow-wrap: break-word;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
     `;
-    errorDetails.innerHTML = `
-        <div><strong>Error:</strong> ${error.message}</div>
-        <div><strong>Stack:</strong></div>
-        <pre style="font-size: 10px; margin-top: 5px;">${error.stack}</pre>
-        <div style="margin-top: 10px; color: #ff0;">
-            Please check the browser console for more details.
+    
+    errorScreen.innerHTML = `
+        <div style="text-align: center; max-width: 80%;">
+            <h2 style="color: #f00; margin-bottom: 20px;">❌ INITIALIZATION FAILED</h2>
+            <div style="background: rgba(255, 0, 0, 0.1); padding: 20px; border: 1px solid #f00; margin-bottom: 20px;">
+                <div><strong>Error:</strong> ${error.message}</div>
+                <pre style="font-size: 10px; margin-top: 10px; text-align: left;">${error.stack}</pre>
+            </div>
+            <div style="color: #ff0;">
+                Please check the browser console for more details.
+            </div>
         </div>
     `;
     
-    loadingScreen.appendChild(errorDetails);
+    gameContainer.appendChild(errorScreen);
 }
 
 /**

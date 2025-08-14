@@ -320,7 +320,7 @@ export class MainMenu {
         this.buttons = [
             {
                 id: 'player_name',
-                text: `CAPTAIN NAME: ${this.newGameSettings.playerName}`,
+                text: `JMÉNO PILOTA: ${this.newGameSettings.playerName}`,
                 x: 0, y: 0, width: 400, height: 30,
                 enabled: true,
                 highlighted: false,
@@ -328,7 +328,7 @@ export class MainMenu {
             },
             {
                 id: 'difficulty',
-                text: `DIFFICULTY: ${this.newGameSettings.difficulty.toUpperCase()}`,
+                text: `OBTÍŽNOST: ${this.translateDifficulty(this.newGameSettings.difficulty)}`,
                 x: 0, y: 0, width: 400, height: 30,
                 enabled: true,
                 highlighted: false,
@@ -336,7 +336,7 @@ export class MainMenu {
             },
             {
                 id: 'galaxy_size',
-                text: `GALAXY SIZE: ${this.newGameSettings.galaxySize.toUpperCase()}`,
+                text: `VELIKOST GALAXIE: ${this.translateGalaxySize(this.newGameSettings.galaxySize)}`,
                 x: 0, y: 0, width: 400, height: 30,
                 enabled: true,
                 highlighted: false,
@@ -344,7 +344,7 @@ export class MainMenu {
             },
             {
                 id: 'enemy_frequency',
-                text: `HOSTILES: ${this.newGameSettings.enemyFrequency.toUpperCase()}`,
+                text: `NEPŘÁTELÉ: ${this.translateEnemyFrequency(this.newGameSettings.enemyFrequency)}`,
                 x: 0, y: 0, width: 400, height: 30,
                 enabled: true,
                 highlighted: false,
@@ -352,7 +352,7 @@ export class MainMenu {
             },
             {
                 id: 'permadeath',
-                text: `PERMADEATH: ${this.newGameSettings.enablePermadeath ? 'ON' : 'OFF'}`,
+                text: `PERMANENTNÍ SMRT: ${this.newGameSettings.enablePermadeath ? 'ZAPNUTO' : 'VYPNUTO'}`,
                 x: 0, y: 0, width: 400, height: 30,
                 enabled: true,
                 highlighted: false,
@@ -360,7 +360,7 @@ export class MainMenu {
             },
             {
                 id: 'tutorial',
-                text: `TUTORIAL: ${this.newGameSettings.enableTutorial ? 'ON' : 'OFF'}`,
+                text: `TUTORIÁL: ${this.newGameSettings.enableTutorial ? 'ZAPNUTO' : 'VYPNUTO'}`,
                 x: 0, y: 0, width: 400, height: 30,
                 enabled: true,
                 highlighted: false,
@@ -368,7 +368,7 @@ export class MainMenu {
             },
             {
                 id: 'start_game',
-                text: 'START MISSION',
+                text: 'ZAHÁJIT MISI',
                 x: 0, y: 0, width: 300, height: 40,
                 enabled: true,
                 highlighted: false,
@@ -376,7 +376,7 @@ export class MainMenu {
             },
             {
                 id: 'back',
-                text: 'BACK',
+                text: 'ZPĚT',
                 x: 0, y: 0, width: 200, height: 40,
                 enabled: true,
                 highlighted: false,
@@ -783,6 +783,36 @@ export class MainMenu {
         this.transitionToState(MenuState.GameStart);
     }
 
+    private translateDifficulty(difficulty: string): string {
+        switch (difficulty) {
+            case 'easy': return 'LEHKÁ';
+            case 'normal': return 'NORMÁLNÍ';
+            case 'hard': return 'TĚŽKÁ';
+            case 'nightmare': return 'EXTRÉMNÍ';
+            default: return difficulty.toUpperCase();
+        }
+    }
+
+    private translateGalaxySize(size: string): string {
+        switch (size) {
+            case 'small': return 'MALÁ';
+            case 'medium': return 'STŘEDNÍ';
+            case 'large': return 'VELKÁ';
+            case 'huge': return 'OBROVSKÁ';
+            default: return size.toUpperCase();
+        }
+    }
+
+    private translateEnemyFrequency(frequency: string): string {
+        switch (frequency) {
+            case 'low': return 'MÁLO';
+            case 'normal': return 'NORMÁLNĚ';
+            case 'high': return 'HODNĚ';
+            case 'extreme': return 'EXTRÉMNĚ';
+            default: return frequency.toUpperCase();
+        }
+    }
+
     /**
      * Settings adjustment actions
      */
@@ -1070,11 +1100,11 @@ export class MainMenu {
             b: 12 + Math.floor(this.titleGlow * 8)
         };
         
-        this.renderText(renderer, 'VESMÍRNÝ PRŮZKUMNÍK', 512, 120, 'large', titleColor, 'center');
-        this.renderText(renderer, 'DOBRODRUŽSTVÍ V HLUBOKÉM VESMÍRU', 512, 160, 'medium', { r: 48, g: 48, b: 48 }, 'center');
+        this.renderText(renderer, 'VESMÍRNÝ PRŮZKUMNÍK', 720, 120, 'large', titleColor, 'center');
+        this.renderText(renderer, 'DOBRODRUŽSTVÍ V HLUBOKÉM VESMÍRU', 720, 160, 'medium', { r: 48, g: 48, b: 48 }, 'center');
         
         // Render version
-        this.renderText(renderer, 'v1.0.0 ALPHA', 950, 740, 'small', { r: 32, g: 32, b: 32 }, 'right');
+        this.renderText(renderer, 'v1.0.0 ALPHA', 1390, 870, 'small', { r: 32, g: 32, b: 32 }, 'right');
         
         // Render buttons
         this.renderButtons(renderer);
@@ -1087,7 +1117,7 @@ export class MainMenu {
             ];
             
             hints.forEach((hint, index) => {
-                this.renderText(renderer, hint, 512, 650 + index * 25, 'small', { r: 24, g: 24, b: 24 }, 'center');
+                this.renderText(renderer, hint, 720, 750 + index * 25, 'small', { r: 24, g: 24, b: 24 }, 'center');
             });
         }
     }
@@ -1096,14 +1126,14 @@ export class MainMenu {
      * Render new game menu
      */
     private renderNewGameMenu(renderer: Renderer): void {
-        this.renderText(renderer, 'NEW MISSION SETUP', 512, 100, 'large', { r: 72, g: 48, b: 12 }, 'center');
+        this.renderText(renderer, 'TVORBA PILOTA', 720, 100, 'large', { r: 72, g: 48, b: 12 }, 'center');
         
         // Render buttons
         this.renderButtons(renderer);
         
         // Render galaxy seed info
-        this.renderText(renderer, `GALAXY SEED: ${this.newGameSettings.galaxySeed}`, 400, 480, 'medium', { r: 48, g: 48, b: 48 }, 'center');
-        this.renderText(renderer, 'Press R to generate random seed', 400, 500, 'small', { r: 32, g: 32, b: 32 }, 'center');
+        this.renderText(renderer, `SEED GALAXIE: ${this.newGameSettings.galaxySeed}`, 720, 680, 'medium', { r: 48, g: 48, b: 48 }, 'center');
+        this.renderText(renderer, 'Stiskněte R pro generování náhodného seedu', 720, 710, 'small', { r: 32, g: 32, b: 32 }, 'center');
     }
 
     /**
